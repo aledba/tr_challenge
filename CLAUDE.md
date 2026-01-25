@@ -183,16 +183,39 @@ results = evaluator.evaluate(data.y_test, trainer.predict(data.X_test))
 
 ---
 
-## Environment
+## Environment Setup
 
+### Option 1: Conda (recommended)
 ```bash
+# Create new environment
+conda create -n tr_challenge python=3.11 -y
 conda activate tr_challenge
-# Python 3.11
-# Key packages: pandas, numpy, scikit-learn, matplotlib, seaborn
 
-# For Legal-BERT, install:
-pip install torch transformers
+# Install dependencies
+pip install -r requirements.txt
+
+# Register Jupyter kernel
+python -m ipykernel install --user --name=tr_challenge
 ```
+
+### Option 2: venv
+```bash
+python3.11 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python -m ipykernel install --user --name=tr_challenge
+```
+
+### Verify Installation
+```bash
+python -c "import torch; print(f'PyTorch: {torch.__version__}')"
+python -c "import transformers; print(f'Transformers: {transformers.__version__}')"
+python -c "import sklearn; print(f'Scikit-learn: {sklearn.__version__}')"
+```
+
+### Data Setup
+The data file `data/TRDataChallenge2023.txt` is **not in the repo** (per challenge rules).
+Download from the challenge link and place in `data/` folder.
 
 ---
 
