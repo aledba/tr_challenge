@@ -17,14 +17,14 @@ This is a **hiring exercise** for Thomson Reuters Labs. The task is to build an 
 
 **Deliverable**: [notebooks/01_data_exploration.ipynb](notebooks/01_data_exploration.ipynb)
 
-### Question 2: Modeling 🔄 IN PROGRESS
+### Question 2: Modeling ✅ COMPLETE
 - Build a model for procedural posture automation
 - Analyze strengths/weaknesses
 - **Make feasibility recommendation** comparing to human annotator agreement (κ = 0.63–0.93)
 
 **Deliverables**:
-- [notebooks/02_modeling.ipynb](notebooks/02_modeling.ipynb) - TF-IDF baseline DONE
-- Legal-BERT fine-tuning - **TODO on powerful machine**
+- [notebooks/02_modeling.ipynb](notebooks/02_modeling.ipynb) - TF-IDF baseline + Legal-Longformer hybrid
+- [src/bert_trainer.py](src/bert_trainer.py) - Transformer training module
 
 ### Question 3: Next Steps ⏳ NOT STARTED
 - Either (a) additional experiments OR (b) production planning
@@ -64,45 +64,69 @@ Feasibility vs human κ (0.63–0.93):
 
 ---
 
-## Next Step: Legal-BERT Fine-Tuning
+## Transformer Model: Legal-Longformer Hybrid
 
-### Why Legal-BERT?
-- Domain-specific pretraining on legal text
-- Model: `nlpaueb/legal-bert-base-uncased`
-- Expected improvement: +5-15% F1 over TF-IDF
+### Why Legal-Longformer (not Legal-BERT)?
+- **Legal-BERT**: 512 token limit → covers only ~5% of documents fully
+- **Legal-Longformer**: 4,096 token limit → covers ~65% of documents fully
+- Model: `lexlms/legal-longformer-base` (same authors as Legal-BERT)
 
-### Hardware Requirements
-| Component | Needed |
-|-----------|--------|
-| GPU VRAM | 16GB+ recommended |
-| RAM | 32GB+ |
-| Model size | ~110M params |
+### Hybrid Strategy for Long Documents
+Documents exceeding 4,096 tokens are **summarized** before classification:
 
-### Implementation Plan
+| Document Length | Strategy | Model Used |
+|-----------------|----------|------------|
+| ≤4,096 tokens | Direct classification | Legal-Longformer |
+| >4,096 tokens | Summarize → Classify | Legal-LED (16K) → Legal-Longformer |
 
-1. **Create `src/bert_trainer.py`** with:
-   - `LegalBertDataset` - PyTorch Dataset for text + multi-label
-   - `LegalBertTrainer` - Training loop with early stopping
-   - Uses `BCEWithLogitsLoss` for multi-label
+This preserves semantic content better than arbitrary truncation.
 
-2. **Add cells to `02_modeling.ipynb`**:
-   - Load Legal-BERT tokenizer and model
-   - Add classification head (768 → 41 labels)
-   - Train with gradient accumulation if needed
-   - Compare to baseline
+### Implementation (`src/bert_trainer.py`)
 
-3. **Key hyperparameters**:
-   ```python
-   max_length = 512  # BERT limit
-   batch_size = 8-16  # depending on VRAM
-   learning_rate = 2e-5
-   epochs = 3-5
-   ```
+```python
+from src.bert_trainer import HybridLegalClassifier, TrainingConfig
 
-4. **Document handling** (docs are long!):
-   - Option A: Truncate to first 512 tokens
-   - Option B: Chunk and aggregate predictions
-   - Start with Option A for simplicity
+# Initialize hybrid classifier
+classifier = HybridLegalClassifier(
+    num_labels=41,
+    classifier_model='lexlms/legal-longformer-base',  # 4,096 tokens
+    summarizer_model='nsi319/legal-led-base-16384',   # 16,384 tokens
+    cache_dir='outputs/summaries',
+)
+
+# Train (automatically preprocesses long docs)
+classifier.train(
+    train_texts, y_train,
+    val_texts, y_val,
+    config=TrainingConfig(batch_size=4, num_epochs=5),
+)
+
+# Predict
+y_pred = classifier.predict(test_texts)
+```
+
+### Key Classes
+| Class | Purpose |
+|-------|---------|
+| `DeviceManager` | Auto-detect CUDA/MPS/CPU |
+| `SummaryCache` | Disk cache for expensive summaries |
+| `LegalSummarizer` | LED-based document summarization |
+| `LegalLongformerTrainer` | Classification fine-tuning |
+| `HybridLegalClassifier` | Orchestrates summarize + classify |
+| `TrainingConfig` | Hyperparameter configuration |
+| `TrainingHistory` | Training metrics tracking |
+
+### Training Configuration
+```python
+config = TrainingConfig(
+    batch_size=4,
+    gradient_accumulation_steps=4,  # Effective batch = 16
+    learning_rate=2e-5,
+    num_epochs=5,
+    warmup_ratio=0.1,
+    early_stopping_patience=2,
+)
+```
 
 ---
 
@@ -146,16 +170,20 @@ TR_hiring_exercise/
 │   └── data_analysis.md
 ├── notebooks/
 │   ├── 01_data_exploration.ipynb # Q1 - COMPLETE
-│   ├── 02_modeling.ipynb         # Q2 - Baseline done, BERT TODO
+│   ├── 02_modeling.ipynb         # Q2 - COMPLETE (baseline + transformer)
 │   └── ontology_verification.ipynb
 ├── src/
 │   ├── __init__.py
 │   ├── data_loader.py      # DataLoader class
 │   ├── data_analyzer.py    # DatasetAnalyzer, PostureTaxonomy
-│   ├── model_trainer.py    # DataPreparer, BaselineTrainer
+│   ├── model_trainer.py    # DataPreparer, BaselineTrainer (TF-IDF)
 │   ├── model_evaluator.py  # MultiLabelEvaluator
+│   ├── bert_trainer.py     # HybridLegalClassifier (Longformer)
 │   └── visualization.py
 └── outputs/
+    ├── summaries/          # Cached document summaries
+    ├── legal_longformer_best.pt  # Best model checkpoint
+    └── *.history.json      # Training history
 ```
 
 ---
@@ -221,8 +249,25 @@ Download from the challenge link and place in `data/` folder.
 
 ## Immediate TODO
 
-1. **On powerful machine**: Add Legal-BERT to `02_modeling.ipynb`
-2. **Compare** baseline vs BERT performance
-3. **Update feasibility analysis** with BERT results
-4. **Write Question 3** response (next steps)
-5. **Package** for submission (zip without data)
+1. ✅ **Run notebook**: Execute `02_modeling.ipynb` cells 1-18 (baseline)
+2. ✅ **Run notebook**: Execute cells 19-33 (Legal-Longformer training)
+3. ⏳ **Write Question 3** response (next steps / production planning)
+4. ⏳ **Package** for submission (zip without data)
+
+## Results (After Running Notebook)
+
+After executing the notebook, update this section with actual results:
+
+```
+# TODO: Fill in after running
+Hybrid Model Performance:
+  F1 Micro:    [TBD]
+  F1 Macro:    [TBD]
+
+Improvement over Baseline:
+  F1 Micro:    +[TBD]
+
+Automation Feasibility:
+  Fully automatable: [TBD]/41 postures
+  High confidence:   [TBD]/41 postures
+```

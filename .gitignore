@@ -177,3 +177,6 @@ pyrightconfig.json
 
 # Large data files
 data/TRDataChallenge2023.txt
+
+# Model outputs (checkpoints, summaries, etc.)
+outputs/
