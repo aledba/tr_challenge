@@ -3,9 +3,12 @@ Model training utilities for TR Data Challenge.
 Handles data preparation and model training for multi-label classification.
 """
 
+import logging
 import pandas as pd
 import numpy as np
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 from dataclasses import dataclass, field
 from typing import Optional
 from sklearn.model_selection import train_test_split
@@ -153,6 +156,15 @@ class DataPreparer:
         # Extract flat text
         texts = TextExtractor.extract_all(df, text_col)
         labels = df[posture_col].tolist()
+        
+        # Filter out empty or minimal text documents (< 10 words)
+        MIN_WORDS = 10
+        valid_text_mask = [len(t.split()) >= MIN_WORDS for t in texts]
+        n_filtered = sum(1 for m in valid_text_mask if not m)
+        if n_filtered > 0:
+            texts = [t for t, m in zip(texts, valid_text_mask) if m]
+            labels = [l for l, m in zip(labels, valid_text_mask) if m]
+            logger.info(f"Filtered {n_filtered} documents with < {MIN_WORDS} words")
         
         # Filter to viable labels if specified
         if self.min_label_count is not None:

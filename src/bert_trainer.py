@@ -21,7 +21,7 @@ import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Literal, Callable
+from typing import Optional, Callable, TYPE_CHECKING, Any
 
 import numpy as np
 import pandas as pd
@@ -30,13 +30,22 @@ from torch import nn
 from torch.utils.data import Dataset, DataLoader as TorchDataLoader
 from tqdm.auto import tqdm
 
+# Type hints for lazy imports (only used by type checker, not at runtime)
+if TYPE_CHECKING:
+    from transformers import (
+        AutoTokenizer as _AutoTokenizerType,
+        AutoModel as _AutoModelType,
+        AutoModelForSeq2SeqLM as _AutoModelForSeq2SeqLMType,
+        LongformerForSequenceClassification as _LongformerType,
+    )
+
 # Lazy imports for transformers (heavy)
-_transformers_imported = False
-_AutoTokenizer = None
-_AutoModel = None
-_AutoModelForSeq2SeqLM = None
-_LongformerForSequenceClassification = None
-_get_linear_schedule_with_warmup = None
+_transformers_imported: bool = False
+_AutoTokenizer: Any = None
+_AutoModel: Any = None
+_AutoModelForSeq2SeqLM: Any = None
+_LongformerForSequenceClassification: Any = None
+_get_linear_schedule_with_warmup: Any = None
 
 
 def _import_transformers():
@@ -133,7 +142,7 @@ class TrainingConfig:
     weight_decay: float = 0.01
     max_grad_norm: float = 1.0
     early_stopping_patience: int = 2
-    checkpoint_dir: str = None  # Directory to save checkpoints after each epoch
+    checkpoint_dir: Optional[str] = None  # Directory to save checkpoints after each epoch
     use_pos_weight: bool = True  # Use class weights to handle imbalance
     
     @property
@@ -299,18 +308,23 @@ class LegalSummarizer:
     
     @property
     def tokenizer(self):
+        """Get tokenizer, loading model if needed."""
         self._load_model()
+        assert self._tokenizer is not None, "Tokenizer failed to load"
         return self._tokenizer
     
     @property
     def model(self):
+        """Get model, loading if needed."""
         self._load_model()
+        assert self._model is not None, "Model failed to load"
         return self._model
     
     def count_tokens(self, text: str) -> int:
         """Count tokens in text without loading full model."""
         if self._tokenizer is None:
             self._tokenizer = _AutoTokenizer.from_pretrained(self.model_name)
+        assert self._tokenizer is not None, "Tokenizer failed to load"
         return len(self._tokenizer.encode(text, add_special_tokens=False))
     
     def summarize(self, text: str, use_cache: bool = True) -> str:
@@ -389,8 +403,8 @@ class LegalSummarizer:
             List of summary strings in same order as input texts
         """
         self._load_model()
-        all_summaries = [None] * len(texts)  # Preserve order
-        texts_needing_inference = []  # (original_index, text) tuples
+        all_summaries: list[Optional[str]] = [None] * len(texts)  # Preserve order
+        texts_needing_inference: list[tuple[int, str]] = []  # (original_index, text) tuples
         
         # Phase 1: Check cache and separate cache misses
         for idx, text in enumerate(texts):
@@ -462,7 +476,8 @@ class LegalSummarizer:
             
             pbar.close()
         
-        return all_summaries
+        # All positions should be filled at this point
+        return all_summaries  # type: ignore[return-value]
 
 
 # =============================================================================
@@ -529,6 +544,7 @@ class TruncateStrategy(LongDocumentStrategy):
     
     def process(self, text: str, token_count: int, max_length: int) -> str:
         return text  # Tokenizer handles truncation
+        # Note: pass not needed, return statement is present
 
 
 class HeadTailStrategy(LongDocumentStrategy):
@@ -602,16 +618,20 @@ class BaseTransformerTrainer(ABC):
         """Load tokenizer."""
         if self._tokenizer is None:
             self._tokenizer = _AutoTokenizer.from_pretrained(self.model_name)
+        assert self._tokenizer is not None, "Tokenizer failed to load"
         return self._tokenizer
     
     @property
     def tokenizer(self):
+        """Get tokenizer, loading if needed."""
         return self._load_tokenizer()
     
     @property
-    def model(self):
+    def model(self) -> nn.Module:
+        """Get model, creating if needed."""
         if self._model is None:
             self._model = self._create_model()
+            assert self._model is not None, "Model failed to initialize"
             self._model.to(self.device)
         return self._model
     
@@ -642,7 +662,7 @@ class BaseTransformerTrainer(ABC):
         labels = batch['labels'].to(self.device)
         
         # Forward pass without labels to get logits
-        outputs = model(
+        outputs = model.forward(
             input_ids=input_ids,
             attention_mask=attention_mask,
         )
@@ -652,7 +672,7 @@ class BaseTransformerTrainer(ABC):
             loss = self._loss_fn(outputs.logits, labels)
         else:
             # Fallback: re-run with labels to use model's built-in loss
-            outputs = model(
+            outputs = model.forward(
                 input_ids=input_ids,
                 attention_mask=attention_mask,
                 labels=labels,
@@ -678,7 +698,7 @@ class BaseTransformerTrainer(ABC):
                 attention_mask = batch['attention_mask'].to(self.device)
                 labels = batch['labels'].to(self.device)
                 
-                outputs = model(
+                outputs = model.forward(
                     input_ids=input_ids,
                     attention_mask=attention_mask,
                 )
@@ -689,7 +709,7 @@ class BaseTransformerTrainer(ABC):
                     total_loss += loss.item()
                 else:
                     # Fallback: re-run with labels
-                    outputs_with_labels = model(
+                    outputs_with_labels = model.forward(
                         input_ids=input_ids,
                         attention_mask=attention_mask,
                         labels=labels,
@@ -857,7 +877,6 @@ class BaseTransformerTrainer(ABC):
             
             # Save checkpoint after each epoch
             if config.checkpoint_dir:
-                from pathlib import Path
                 ckpt_dir = Path(config.checkpoint_dir)
                 ckpt_dir.mkdir(parents=True, exist_ok=True)
                 ckpt_path = ckpt_dir / f"checkpoint_epoch_{epoch + 1}.pt"
@@ -903,7 +922,9 @@ class BaseTransformerTrainer(ABC):
         Returns:
             Probability matrix (n_samples, n_labels)
         """
-        self.model.eval()
+        # Get model reference (property ensures it's initialized)
+        model = self.model
+        model.eval()
         all_probs = []
         
         dataset = LegalTextDataset(
@@ -919,7 +940,8 @@ class BaseTransformerTrainer(ABC):
                 input_ids = batch['input_ids'].to(self.device)
                 attention_mask = batch['attention_mask'].to(self.device)
                 
-                outputs = self.model(
+                # Use forward() explicitly - clearer than __call__ and type-checker friendly
+                outputs = model.forward(
                     input_ids=input_ids,
                     attention_mask=attention_mask,
                 )
@@ -945,21 +967,21 @@ class BaseTransformerTrainer(ABC):
     
     def save(self, path: str) -> None:
         """Save model weights and training history."""
-        path = Path(path)
-        path.parent.mkdir(parents=True, exist_ok=True)
+        save_path = Path(path)
+        save_path.parent.mkdir(parents=True, exist_ok=True)
         
         torch.save({
             'model_state_dict': self.model.state_dict(),
             'model_name': self.model_name,
             'num_labels': self.num_labels,
             'max_length': self.max_length,
-        }, path)
+        }, save_path)
         
         # Save history alongside
-        history_path = path.with_suffix('.history.json')
+        history_path = save_path.with_suffix('.history.json')
         self.history.save(str(history_path))
         
-        logger.info(f"Model saved to {path}")
+        logger.info(f"Model saved to {save_path}")
     
     def load(self, path: str) -> 'BaseTransformerTrainer':
         """Load model weights."""
