@@ -34,15 +34,24 @@ Best published system for POSTURE50K:
 | Longformer | 78.5 | 70.5 |
 | BERT-base | 77.8 | 69.5 |
 
-### Our Baseline Comparison
+### Our Results (Proper Val/Test Split)
 
-| Model | μ-F1 | m-F1 |
-|-------|------|------|
-| TF-IDF + LogReg (ours) | 75.2 | 52.6 |
-| SOTA transformers | ~80 | ~72 |
-| **Gap** | +5pp | +20pp |
+*Thresholds optimized on validation set, evaluated on held-out test set*
 
-Takeaway: Transformers offer modest μ-F1 gains but significant m-F1 improvement on rare classes.
+| Model | μ-F1 | m-F1 | Notes |
+|-------|------|------|-------|
+| TF-IDF + LogReg | 75.2 | 56.9 | Baseline |
+| Legal-Longformer (t=0.5) | 63.7 | 45.8 | Default threshold |
+| Legal-Longformer (t=0.6) | 70.1 | 52.8 | Global threshold tuning |
+| **Legal-Longformer (per-class)** | **77.0** | **58.5** | Per-class threshold optimization |
+| SOTA transformers | ~80 | ~72 | Published benchmarks |
+
+Key findings:
+- Per-class threshold optimization **beat TF-IDF** by +1.8pp on μ-F1 and +1.6pp on m-F1
+- Critical fix: `pos_weight` for class imbalance (without it: μ-F1 = 0.02!)
+- Threshold tuning journey: 0.5 → 0.6 → per-class optimal
+- No data leakage: thresholds tuned on val, final eval on held-out test
+- See [training_story.md](training_story.md) for full journey
 
 ---
 

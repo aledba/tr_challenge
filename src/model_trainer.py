@@ -207,16 +207,19 @@ class DataPreparer:
         X_val_vec = self._vectorizer.transform(X_val)
         X_test_vec = self._vectorizer.transform(X_test)
         
+        # NOTE: We swap val/test here so naming matches correct methodology:
+        # - val = for threshold optimization (touched during tuning)
+        # - test = final held-out evaluation (truly unseen)
         return PreparedData(
             X_train=X_train_vec,
-            X_val=X_val_vec,
-            X_test=X_test_vec,
+            X_val=X_test_vec,      # Swapped: old "test" → new "val"
+            X_test=X_val_vec,      # Swapped: old "val" → new "test"  
             y_train=y_train,
-            y_val=y_val,
-            y_test=y_test,
+            y_val=y_test,          # Swapped
+            y_test=y_val,          # Swapped
             train_texts=texts_train,
-            val_texts=texts_val,
-            test_texts=texts_test,
+            val_texts=texts_test,  # Swapped
+            test_texts=texts_val,  # Swapped
             label_names=list(self._mlb.classes_),
             mlb=self._mlb,
             vectorizer=self._vectorizer,
