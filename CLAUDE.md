@@ -163,7 +163,7 @@ TR_hiring_exercise/
 ├── CLAUDE.md              # This file
 ├── data/
 │   ├── TRDataChallenge2023.txt   # JSON Lines (18k docs)
-│   └── posture_taxonomy.json     # Label distribution
+│   └── label_distribution.json   # Label statistics and frequencies
 ├── docs/
 │   ├── legal_posture_ontology.md # Taxonomy with UML diagrams
 │   ├── challenge_description.txt # OCR'd requirements

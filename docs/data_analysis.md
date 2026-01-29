@@ -330,7 +330,7 @@ logger.info(f"Filtered {n_filtered} documents with < {MIN_WORDS} words")
 
 | File | Purpose |
 |------|---------|
-| `data/posture_taxonomy.json` | Exported taxonomy for model training pipeline |
+| `data/label_distribution.json` | Label statistics and frequencies for modeling |
 | `outputs/posture_distribution.png` | Label frequency chart |
 
 ---
