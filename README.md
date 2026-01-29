@@ -21,7 +21,7 @@ pip install -r requirements.txt
 ### Environment
 - **Python**: 3.11
 - **Key Libraries**: PyTorch 2.0, Transformers 4.36, scikit-learn 1.3, pandas, numpy
-- **Hardware**: GPU recommended for notebook 02 training (6 hours on A100)
+- **Hardware**: GPU/MPS recommended for notebook 02 training (~15 hours on M2)
 
 ### Running the Analysis
 ```bash
@@ -186,7 +186,7 @@ tr_challenge/
 - **Batch size**: 8 (effective 32 with gradient accumulation)
 - **Loss**: Binary cross-entropy with logits
 - **Warmup**: 10% of training steps
-- **Hardware**: Apple M1/M2 MPS, ~1.5-2.5 hours training time
+- **Hardware**: Apple M2 MPS (192GB RAM), ~15 hours training time
 
 **Threshold Optimization**:
 - Initial: Global threshold = 0.5
@@ -311,7 +311,7 @@ y_proba = data['y_proba']  # shape: (2509, 41), probability scores
 ### Compute Requirements
 
 **Training**:
-- Legal-Longformer: ~6 hours on 1x A100 (40GB VRAM)
+- Legal-Longformer: ~15 hours on Apple M2 MPS (192GB RAM)
 - TF-IDF: <1 minute on CPU
 
 **Inference** (batch_size=16):
