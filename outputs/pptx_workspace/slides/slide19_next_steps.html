@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html><head><style>
+html { background: #0E1A2B; }
+body { width: 720pt; height: 405pt; margin: 0; padding: 0; font-family: Arial, sans-serif; display: flex; flex-direction: column; background-image: url('bg_content.png'); background-size: cover; }
+.topbar { width: 100%; height: 4pt; min-height: 4pt; }
+.topbar img { width: 720pt; height: 4pt; display: block; }
+.header { margin: 24pt 36pt 0 36pt; }
+h1 { color: #00B4D8; font-size: 22pt; margin: 0; }
+.content { display: flex; flex-direction: row; margin: 12pt 36pt 0 36pt; flex: 1; gap: 16pt; }
+.col { flex: 1; }
+p.label { color: #94A3B8; font-size: 9pt; margin: 0 0 6pt 0; text-transform: uppercase; letter-spacing: 1pt; }
+.step { background: rgba(255,255,255,0.04); border: 1pt solid rgba(255,255,255,0.08); border-radius: 6pt; padding: 8pt 12pt; margin: 0 0 6pt 0; }
+.step p.name { color: #00B4D8; font-size: 10pt; font-weight: bold; margin: 0 0 3pt 0; }
+.step p { color: #94A3B8; font-size: 8.5pt; margin: 0; line-height: 1.3; }
+.step-prod { background: rgba(231, 111, 81, 0.08); border: 1pt solid rgba(231, 111, 81, 0.2); border-radius: 6pt; padding: 8pt 12pt; margin: 0 0 6pt 0; }
+.step-prod p.name { color: #E76F51; font-size: 10pt; font-weight: bold; margin: 0 0 3pt 0; }
+.step-prod p { color: #94A3B8; font-size: 8.5pt; margin: 0; line-height: 1.3; }
+</style></head>
+<body>
+<div class="topbar"><img src="accent_teal.png"></div>
+<div class="header"><h1>Next Steps</h1></div>
+<div class="content">
+  <div class="col">
+    <p class="label">MODEL IMPROVEMENTS</p>
+    <div class="step">
+      <p class="name">GPU Training Infrastructure</p>
+      <p>Train on CUDA cluster: larger batches, more epochs, proper hyperparameter search</p>
+    </div>
+    <div class="step">
+      <p class="name">Hierarchical Classification</p>
+      <p>Leverage ontology structure: shared encoder with multi-task heads per dimension</p>
+    </div>
+    <div class="step">
+      <p class="name">Data Augmentation</p>
+      <p>Oversample rare classes, back-translation, synonym replacement for legal terms</p>
+    </div>
+    <div class="step">
+      <p class="name">Ensemble Strategy</p>
+      <p>Combine TF-IDF + Transformer predictions (weighted by per-class confidence)</p>
+    </div>
+    <div class="step">
+      <p class="name">Threshold Optimization</p>
+      <p>Per-class threshold tuning instead of global 0.5 cutoff</p>
+    </div>
+  </div>
+  <div class="col">
+    <p class="label">PRODUCTION PATH</p>
+    <div class="step-prod">
+      <p class="name">Confidence-Based Routing</p>
+      <p>High confidence: auto-label. Low confidence: route to human reviewer</p>
+    </div>
+    <div class="step-prod">
+      <p class="name">Active Learning Pipeline</p>
+      <p>Model flags uncertain predictions for human annotation, continuously improves</p>
+    </div>
+    <div class="step-prod">
+      <p class="name">Monitoring & Drift Detection</p>
+      <p>Track prediction distributions over time, alert on concept drift</p>
+    </div>
+    <div class="step-prod">
+      <p class="name">A/B Testing Framework</p>
+      <p>Compare model labels vs human labels on live data to measure real-world accuracy</p>
+    </div>
+    <div class="step-prod">
+      <p class="name">Incremental Retraining</p>
+      <p>Periodic model updates as new labeled data accumulates from human review</p>
+    </div>
+  </div>
+</div>
+</body></html>

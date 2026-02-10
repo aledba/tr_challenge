@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html><head><style>
+html { background: #0E1A2B; }
+body { width: 720pt; height: 405pt; margin: 0; padding: 0; font-family: Arial, sans-serif; display: flex; flex-direction: column; background-image: url('bg_content.png'); background-size: cover; }
+.topbar { width: 100%; height: 4pt; min-height: 4pt; }
+.topbar img { width: 720pt; height: 4pt; display: block; }
+.header { margin: 24pt 36pt 0 36pt; }
+h1 { color: #00B4D8; font-size: 22pt; margin: 0; }
+.content { display: flex; flex-direction: row; margin: 14pt 36pt 0 36pt; flex: 1; gap: 20pt; }
+.left { flex: 1; }
+.right { flex: 1; }
+p.label { color: #94A3B8; font-size: 9pt; margin: 0 0 6pt 0; text-transform: uppercase; letter-spacing: 1pt; }
+p { color: #CBD5E1; font-size: 10pt; margin: 0 0 5pt 0; line-height: 1.4; }
+.model-box { background: rgba(255,255,255,0.04); border: 1pt solid rgba(255,255,255,0.08); border-radius: 6pt; padding: 10pt 14pt; margin: 0 0 8pt 0; }
+.model-box p.name { color: #00B4D8; font-size: 11pt; font-weight: bold; margin: 0 0 4pt 0; }
+.model-box p { color: #CBD5E1; font-size: 9.5pt; margin: 0 0 3pt 0; }
+.config-row { display: flex; flex-direction: row; justify-content: space-between; padding: 5pt 0; border-bottom: 1pt solid rgba(255,255,255,0.06); }
+.config-row p.key { color: #94A3B8; font-size: 9.5pt; margin: 0; }
+.config-row p.val { color: #E2E8F0; font-size: 9.5pt; font-weight: bold; margin: 0; }
+.callout { background: rgba(231, 111, 81, 0.1); border-left: 4pt solid #E76F51; padding: 8pt 14pt; margin: 8pt 0 0 0; border-radius: 0 6pt 6pt 0; }
+.callout p { color: #E2E8F0; font-size: 9.5pt; margin: 0 0 2pt 0; }
+</style></head>
+<body>
+<div class="topbar"><img src="accent_teal.png"></div>
+<div class="header"><h1>Hybrid Legal-Longformer Architecture</h1></div>
+<div class="content">
+  <div class="left">
+    <p class="label">MODELS</p>
+    <div class="model-box">
+      <p class="name">Classifier: Legal-Longformer</p>
+      <p>lexlms/legal-longformer-base</p>
+      <p>4,096 token context window</p>
+      <p>Pre-trained on legal corpora (same authors as Legal-BERT)</p>
+    </div>
+    <div class="model-box">
+      <p class="name">Summarizer: Legal-LED</p>
+      <p>nsi319/legal-led-base-16384</p>
+      <p>16,384 token context window</p>
+      <p>Generates semantic summaries of long docs</p>
+    </div>
+    <div class="callout">
+      <p><b>5,530 summaries</b> cached to disk</p>
+      <p>Enables reproducible results across runs</p>
+    </div>
+  </div>
+  <div class="right">
+    <p class="label">TRAINING CONFIGURATION</p>
+    <div class="config-row"><p class="key">Batch size</p><p class="val">8</p></div>
+    <div class="config-row"><p class="key">Gradient accumulation</p><p class="val">4 steps</p></div>
+    <div class="config-row"><p class="key">Effective batch</p><p class="val">32</p></div>
+    <div class="config-row"><p class="key">Learning rate</p><p class="val">1e-5</p></div>
+    <div class="config-row"><p class="key">Epochs</p><p class="val">5</p></div>
+    <div class="config-row"><p class="key">Warmup ratio</p><p class="val">0.1</p></div>
+    <div class="config-row"><p class="key">Early stopping</p><p class="val">patience=2</p></div>
+    <div class="config-row"><p class="key">Class imbalance</p><p class="val">pos_weight (max 50x)</p></div>
+    <div class="config-row"><p class="key">Device</p><p class="val">Apple MPS</p></div>
+    <p class="label" style="margin-top: 10pt;">BEST EPOCH</p>
+    <p>Epoch 4: val_f1_micro = 0.628</p>
+    <p>Training converged, F1 plateaued at ~0.62</p>
+  </div>
+</div>
+</body></html>

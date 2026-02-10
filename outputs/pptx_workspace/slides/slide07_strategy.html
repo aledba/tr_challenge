@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html><head><style>
+html { background: #0E1A2B; }
+body { width: 720pt; height: 405pt; margin: 0; padding: 0; font-family: Arial, sans-serif; display: flex; flex-direction: column; background-image: url('bg_content.png'); background-size: cover; }
+.topbar { width: 100%; height: 4pt; min-height: 4pt; }
+.topbar img { width: 720pt; height: 4pt; display: block; }
+.header { margin: 24pt 36pt 0 36pt; }
+h1 { color: #00B4D8; font-size: 22pt; margin: 0; }
+.content { display: flex; flex-direction: row; margin: 20pt 36pt 0 36pt; gap: 20pt; flex: 1; }
+.model-card { flex: 1; background: rgba(255,255,255,0.04); border: 1pt solid rgba(255,255,255,0.08); border-radius: 8pt; padding: 18pt; display: flex; flex-direction: column; }
+.model-num { color: #00B4D8; font-size: 36pt; font-weight: bold; margin: 0; }
+.model-name { color: #FFFFFF; font-size: 14pt; font-weight: bold; margin: 4pt 0 10pt 0; }
+.model-card p { color: #CBD5E1; font-size: 10pt; margin: 0 0 6pt 0; line-height: 1.4; }
+.tag { display: inline-block; background: rgba(0, 180, 216, 0.15); border: 1pt solid rgba(0, 180, 216, 0.3); border-radius: 4pt; padding: 2pt 8pt; }
+.tag p { color: #00B4D8; font-size: 9pt; margin: 0; }
+.goal { background: rgba(231, 111, 81, 0.1); border-left: 4pt solid #E76F51; padding: 10pt 14pt; margin: 14pt 36pt 20pt 36pt; border-radius: 0 6pt 6pt 0; }
+.goal p { color: #E2E8F0; font-size: 11pt; margin: 0; }
+</style></head>
+<body>
+<div class="topbar"><img src="accent_teal.png"></div>
+<div class="header"><h1>Modeling Strategy Overview</h1></div>
+<div class="content">
+  <div class="model-card">
+    <p class="model-num">1</p>
+    <p class="model-name">TF-IDF + Logistic Regression</p>
+    <p>Strong, interpretable baseline</p>
+    <p>OneVsRest multi-label strategy</p>
+    <p>10,000 features (unigrams + bigrams)</p>
+    <p>Fast to train and evaluate</p>
+    <div class="tag"><p>BASELINE</p></div>
+  </div>
+  <div class="model-card">
+    <p class="model-num">2</p>
+    <p class="model-name">Legal-Longformer Hybrid</p>
+    <p>Domain-specific transformer</p>
+    <p>4,096 token context window</p>
+    <p>Hybrid summarize + classify strategy</p>
+    <p>Pre-trained on legal corpora</p>
+    <div class="tag"><p>TRANSFORMER</p></div>
+  </div>
+</div>
+<div class="goal">
+  <p><b>Goal:</b> Characterize performance and feasibility, not maximize SOTA results.</p>
+</div>
+</body></html>

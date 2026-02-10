@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html><head><style>
+html { background: #0E1A2B; }
+body { width: 720pt; height: 405pt; margin: 0; padding: 0; font-family: Arial, sans-serif; display: flex; flex-direction: column; background-image: url('bg_content.png'); background-size: cover; }
+.topbar { width: 100%; height: 4pt; min-height: 4pt; }
+.topbar img { width: 720pt; height: 4pt; display: block; }
+.header { margin: 24pt 36pt 0 36pt; }
+h1 { color: #00B4D8; font-size: 22pt; margin: 0; }
+.content { display: flex; flex-direction: row; margin: 16pt 36pt 0 36pt; flex: 1; gap: 20pt; }
+.left { flex: 1; }
+.right { flex: 1; }
+p.label { color: #94A3B8; font-size: 9pt; margin: 0 0 6pt 0; text-transform: uppercase; letter-spacing: 1pt; }
+p { color: #CBD5E1; font-size: 10pt; margin: 0 0 6pt 0; line-height: 1.4; }
+.config-row { display: flex; flex-direction: row; justify-content: space-between; padding: 6pt 0; border-bottom: 1pt solid rgba(255,255,255,0.06); }
+.config-row p.key { color: #94A3B8; font-size: 10pt; margin: 0; }
+.config-row p.val { color: #E2E8F0; font-size: 10pt; font-weight: bold; margin: 0; }
+.pipeline { background: rgba(0, 180, 216, 0.08); border: 1pt solid rgba(0, 180, 216, 0.2); border-radius: 6pt; padding: 12pt 14pt; margin: 10pt 0 0 0; }
+.pipeline p { color: #E2E8F0; font-size: 10pt; margin: 0 0 4pt 0; font-family: Courier New, monospace; }
+.split-box { background: rgba(255,255,255,0.04); border: 1pt solid rgba(255,255,255,0.08); border-radius: 6pt; padding: 12pt 14pt; margin: 10pt 0 0 0; }
+.split-box p { color: #E2E8F0; font-size: 10pt; margin: 0 0 4pt 0; }
+</style></head>
+<body>
+<div class="topbar"><img src="accent_teal.png"></div>
+<div class="header"><h1>Baseline: TF-IDF + Logistic Regression</h1></div>
+<div class="content">
+  <div class="left">
+    <p class="label">CONFIGURATION</p>
+    <div class="config-row"><p class="key">Vectorizer</p><p class="val">TF-IDF</p></div>
+    <div class="config-row"><p class="key">Max features</p><p class="val">10,000</p></div>
+    <div class="config-row"><p class="key">N-grams</p><p class="val">Unigrams + Bigrams</p></div>
+    <div class="config-row"><p class="key">Classifier</p><p class="val">Logistic Regression</p></div>
+    <div class="config-row"><p class="key">Strategy</p><p class="val">OneVsRest</p></div>
+    <div class="config-row"><p class="key">Min label count</p><p class="val">50 (41 labels)</p></div>
+    <div class="config-row"><p class="key">Regularization C</p><p class="val">1.0</p></div>
+    <div class="pipeline">
+      <p>Text -> TF-IDF -> LogReg (x41) -> Predict</p>
+    </div>
+  </div>
+  <div class="right">
+    <p class="label">DATA SPLIT (70 / 15 / 15)</p>
+    <div class="split-box">
+      <p><b>Train:</b> 11,706 documents</p>
+      <p><b>Validation:</b> 2,509 documents</p>
+      <p><b>Test:</b> 2,509 documents</p>
+    </div>
+    <p class="label" style="margin-top: 14pt;">WHY THIS BASELINE?</p>
+    <p>TF-IDF captures domain-specific legal terminology effectively</p>
+    <p>Logistic Regression provides interpretable coefficients</p>
+    <p>Fast iteration for feasibility analysis</p>
+    <p>Strong baseline for legal text classification tasks</p>
+    <p>OneVsRest handles multi-label naturally</p>
+  </div>
+</div>
+</body></html>

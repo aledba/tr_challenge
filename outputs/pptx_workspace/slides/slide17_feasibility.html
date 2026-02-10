@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html><head><style>
+html { background: #0E1A2B; }
+body { width: 720pt; height: 405pt; margin: 0; padding: 0; font-family: Arial, sans-serif; display: flex; flex-direction: column; background-image: url('bg_content.png'); background-size: cover; }
+.topbar { width: 100%; height: 4pt; min-height: 4pt; }
+.topbar img { width: 720pt; height: 4pt; display: block; }
+.header { margin: 24pt 36pt 0 36pt; }
+h1 { color: #00B4D8; font-size: 22pt; margin: 0; }
+.content { display: flex; flex-direction: row; margin: 12pt 36pt 0 36pt; flex: 1; gap: 20pt; }
+.left { flex: 1; }
+.right { flex: 1; }
+p.label { color: #94A3B8; font-size: 9pt; margin: 0 0 6pt 0; text-transform: uppercase; letter-spacing: 1pt; }
+p { color: #CBD5E1; font-size: 10pt; margin: 0 0 5pt 0; line-height: 1.4; }
+.tier { display: flex; align-items: center; background: rgba(255,255,255,0.04); border: 1pt solid rgba(255,255,255,0.08); border-radius: 6pt; padding: 10pt 14pt; margin: 0 0 8pt 0; }
+.tier-icon { width: 36pt; height: 36pt; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12pt; min-width: 36pt; }
+.tier-green { background: rgba(34, 197, 94, 0.2); border: 2pt solid #22C55E; }
+.tier-yellow { background: rgba(234, 179, 8, 0.2); border: 2pt solid #EAB308; }
+.tier-orange { background: rgba(231, 111, 81, 0.2); border: 2pt solid #E76F51; }
+.tier-red { background: rgba(239, 68, 68, 0.2); border: 2pt solid #EF4444; }
+.tier-icon p { font-size: 14pt; font-weight: bold; margin: 0; }
+.tier-green p { color: #22C55E; }
+.tier-yellow p { color: #EAB308; }
+.tier-orange p { color: #E76F51; }
+.tier-red p { color: #EF4444; }
+.tier-info p.name { color: #E2E8F0; font-size: 11pt; font-weight: bold; margin: 0 0 2pt 0; }
+.tier-info p { color: #94A3B8; font-size: 9pt; margin: 0; }
+.efficiency { background: rgba(0, 180, 216, 0.08); border: 1pt solid rgba(0, 180, 216, 0.2); border-radius: 6pt; padding: 12pt 14pt; margin: 8pt 0 0 0; text-align: center; }
+.efficiency p.big { color: #00B4D8; font-size: 28pt; font-weight: bold; margin: 0 0 4pt 0; }
+.efficiency p { color: #E2E8F0; font-size: 10pt; margin: 0; }
+.summary-row { display: flex; justify-content: space-between; padding: 5pt 0; border-bottom: 1pt solid rgba(255,255,255,0.06); }
+.summary-row p { margin: 0; font-size: 10pt; }
+.summary-row p.lbl { color: #94A3B8; }
+.summary-row p.val { color: #E2E8F0; font-weight: bold; }
+</style></head>
+<body>
+<div class="topbar"><img src="accent_teal.png"></div>
+<div class="header"><h1>Feasibility Analysis vs Human Agreement</h1></div>
+<div class="content">
+  <div class="left">
+    <p class="label">RECOMMENDED TIERED DEPLOYMENT</p>
+    <div class="tier">
+      <div class="tier-icon tier-green"><p>1</p></div>
+      <div class="tier-info">
+        <p class="name">Full Automation</p>
+        <p>1 posture (Appellate Review, F1=0.94)</p>
+      </div>
+    </div>
+    <div class="tier">
+      <div class="tier-icon tier-yellow"><p>13</p></div>
+      <div class="tier-info">
+        <p class="name">Assisted Labeling</p>
+        <p>Model labels + human review (F1 >= 0.63)</p>
+      </div>
+    </div>
+    <div class="tier">
+      <div class="tier-icon tier-orange"><p>7</p></div>
+      <div class="tier-info">
+        <p class="name">Human Review</p>
+        <p>Model suggests, human decides (F1: 0.50-0.63)</p>
+      </div>
+    </div>
+    <div class="tier">
+      <div class="tier-icon tier-red"><p>20</p></div>
+      <div class="tier-info">
+        <p class="name">Human Only</p>
+        <p>Insufficient model confidence (F1 &lt; 0.50)</p>
+      </div>
+    </div>
+  </div>
+  <div class="right">
+    <p class="label">BASELINE FEASIBILITY (BEST MODEL)</p>
+    <div class="summary-row"><p class="lbl">Automatable (F1 >= 0.63)</p><p class="val">14 / 41</p></div>
+    <div class="summary-row"><p class="lbl">High confidence (F1 >= 0.93)</p><p class="val">1 / 41</p></div>
+    <div class="summary-row"><p class="lbl">Needs review (0.50-0.63)</p><p class="val">7 / 41</p></div>
+    <div class="summary-row"><p class="lbl">Not feasible (F1 &lt; 0.50)</p><p class="val">20 / 41</p></div>
+    <p class="label" style="margin-top: 10pt;">HUMAN BENCHMARK</p>
+    <div class="summary-row"><p class="lbl">Cohen's kappa range</p><p class="val">0.63 - 0.93</p></div>
+    <div class="summary-row"><p class="lbl">Highest (Appellate Review)</p><p class="val">0.93</p></div>
+    <div class="summary-row"><p class="lbl">Lowest (Trial Phase)</p><p class="val">0.63</p></div>
+    <div class="efficiency">
+      <p class="big">~34%</p>
+      <p>of labeling can be automated or assisted</p>
+    </div>
+  </div>
+</div>
+</body></html>

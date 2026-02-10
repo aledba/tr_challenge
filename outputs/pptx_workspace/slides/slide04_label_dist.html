@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html><head><style>
+html { background: #0E1A2B; }
+body { width: 720pt; height: 405pt; margin: 0; padding: 0; font-family: Arial, sans-serif; display: flex; flex-direction: column; background-image: url('bg_content.png'); background-size: cover; }
+.topbar { width: 100%; height: 4pt; min-height: 4pt; }
+.topbar img { width: 720pt; height: 4pt; display: block; }
+.header { margin: 24pt 36pt 0 36pt; }
+h1 { color: #00B4D8; font-size: 22pt; margin: 0; }
+.content { display: flex; flex-direction: row; margin: 16pt 36pt 0 36pt; flex: 1; }
+.left { flex: 1.1; margin-right: 20pt; }
+.right { flex: 0.9; }
+.tier { background: rgba(255,255,255,0.04); border: 1pt solid rgba(255,255,255,0.08); border-radius: 6pt; padding: 10pt 14pt; margin: 0 0 10pt 0; display: flex; flex-direction: row; align-items: center; }
+.tier-dot { width: 10pt; height: 10pt; border-radius: 50%; margin-right: 10pt; min-width: 10pt; }
+.tier-green { background: #22C55E; }
+.tier-yellow { background: #EAB308; }
+.tier-red { background: #EF4444; }
+.tier-info { flex: 1; }
+.tier-info p { margin: 0; color: #E2E8F0; font-size: 10pt; line-height: 1.4; }
+.tier-info p.name { font-weight: bold; font-size: 11pt; }
+.tier-count { color: #00B4D8; font-size: 18pt; font-weight: bold; margin-left: 8pt; min-width: 30pt; text-align: right; }
+p { color: #CBD5E1; font-size: 10pt; margin: 0 0 8pt 0; line-height: 1.4; }
+p.label { color: #94A3B8; font-size: 9pt; margin: 0 0 4pt 0; text-transform: uppercase; letter-spacing: 1pt; }
+.callout { background: rgba(0, 180, 216, 0.08); border: 1pt solid rgba(0, 180, 216, 0.2); border-radius: 6pt; padding: 10pt 14pt; margin: 10pt 0 0 0; }
+.callout p { color: #E2E8F0; font-size: 10pt; margin: 0 0 4pt 0; }
+.imbalance { background: rgba(231, 111, 81, 0.1); border-left: 4pt solid #E76F51; padding: 10pt 14pt; margin: 0 0 10pt 0; border-radius: 0 6pt 6pt 0; }
+.imbalance p { color: #E2E8F0; font-size: 10pt; margin: 0; }
+</style></head>
+<body>
+<div class="topbar"><img src="accent_teal.png"></div>
+<div class="header"><h1>Label Distribution Challenge</h1></div>
+<div class="content">
+  <div class="left">
+    <div class="tier">
+      <div class="tier-dot tier-green"></div>
+      <div class="tier-info">
+        <p class="name">Common (>=100 samples)</p>
+        <p>91.5% label coverage</p>
+      </div>
+      <p class="tier-count">27</p>
+    </div>
+    <div class="tier">
+      <div class="tier-dot tier-yellow"></div>
+      <div class="tier-info">
+        <p class="name">Moderate (10-99 samples)</p>
+        <p>Additional 3.3% coverage</p>
+      </div>
+      <p class="tier-count">57</p>
+    </div>
+    <div class="tier">
+      <div class="tier-dot tier-red"></div>
+      <div class="tier-info">
+        <p class="name">Rare (&lt;10 samples)</p>
+        <p>44 singletons, long tail</p>
+      </div>
+      <p class="tier-count">140</p>
+    </div>
+    <div class="callout">
+      <p><b>Modeling decision:</b> Filter to 41 labels with >=50 samples</p>
+      <p>Covers <b>94.8%</b> of all label assignments</p>
+    </div>
+  </div>
+  <div class="right">
+    <div class="imbalance">
+      <p><b>Class imbalance ratio: 9,197x</b></p>
+      <p>"On Appeal" (9,197) vs singletons (1)</p>
+    </div>
+    <p class="label">TOP 5 POSTURES</p>
+    <p><b>On Appeal</b> - 9,197 (51.1%)</p>
+    <p><b>Appellate Review</b> - 4,652 (25.8%)</p>
+    <p><b>Review of Admin Decision</b> - 2,773 (15.4%)</p>
+    <p><b>Motion to Dismiss</b> - 1,679 (9.3%)</p>
+    <p><b>Sentencing Phase Motion</b> - 1,342 (7.5%)</p>
+    <p class="label" style="margin-top: 10pt;">BOTTOM 5 POSTURES</p>
+    <p>44 labels appear exactly once</p>
+    <p>140 labels appear fewer than 10 times</p>
+  </div>
+</div>
+</body></html>

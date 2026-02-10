@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html><head><style>
+html { background: #0E1A2B; }
+body { width: 720pt; height: 405pt; margin: 0; padding: 0; font-family: Arial, sans-serif; display: flex; flex-direction: column; background-image: url('bg_content.png'); background-size: cover; }
+.topbar { width: 100%; height: 4pt; min-height: 4pt; }
+.topbar img { width: 720pt; height: 4pt; display: block; }
+.header { margin: 24pt 36pt 0 36pt; }
+h1 { color: #00B4D8; font-size: 22pt; margin: 0; }
+.content { display: flex; flex-direction: row; margin: 14pt 36pt 0 36pt; flex: 1; gap: 20pt; }
+.left { flex: 1; }
+.right { flex: 1; }
+p.label { color: #94A3B8; font-size: 9pt; margin: 0 0 6pt 0; text-transform: uppercase; letter-spacing: 1pt; }
+p { color: #CBD5E1; font-size: 10pt; margin: 0 0 5pt 0; line-height: 1.4; }
+.bar-row { display: flex; align-items: center; margin: 0 0 8pt 0; }
+.bar-label { color: #94A3B8; font-size: 9pt; width: 70pt; min-width: 70pt; }
+.bar-track { flex: 1; height: 18pt; background: rgba(255,255,255,0.06); border-radius: 3pt; position: relative; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 3pt; display: flex; align-items: center; justify-content: flex-end; padding-right: 6pt; }
+.bar-fill p { color: #FFFFFF; font-size: 8pt; font-weight: bold; margin: 0; }
+.red { background: #EF4444; }
+.yellow { background: #EAB308; }
+.green { background: #22C55E; }
+.route-box { background: rgba(255,255,255,0.04); border: 1pt solid rgba(255,255,255,0.08); border-radius: 6pt; padding: 12pt 14pt; margin: 0 0 8pt 0; }
+.route-box p { color: #E2E8F0; font-size: 10pt; margin: 0 0 3pt 0; }
+.route-box p.pct { color: #00B4D8; font-size: 16pt; font-weight: bold; margin: 0 0 4pt 0; }
+.arrow-box { background: rgba(0, 180, 216, 0.08); border: 1pt solid rgba(0, 180, 216, 0.2); border-radius: 6pt; padding: 10pt 14pt; margin: 6pt 0 0 0; }
+.arrow-box p { color: #E2E8F0; font-size: 10pt; margin: 0 0 3pt 0; }
+</style></head>
+<body>
+<div class="topbar"><img src="accent_teal.png"></div>
+<div class="header"><h1>The Long Document Challenge</h1></div>
+<div class="content">
+  <div class="left">
+    <p class="label">TOKEN COVERAGE BY MODEL</p>
+    <p style="margin-bottom: 10pt;">Median doc: 2,693 tokens | Max: 72,080 tokens</p>
+    <div class="bar-row">
+      <p class="bar-label">BERT (512)</p>
+      <div class="bar-track"><div class="bar-fill red" style="width: 4.1%;"><p>4.1%</p></div></div>
+    </div>
+    <div class="bar-row">
+      <p class="bar-label">Longformer (4K)</p>
+      <div class="bar-track"><div class="bar-fill yellow" style="width: 65.1%;"><p>65.1%</p></div></div>
+    </div>
+    <div class="bar-row">
+      <p class="bar-label">LED (16K)</p>
+      <div class="bar-track"><div class="bar-fill green" style="width: 95%;"><p>~95%</p></div></div>
+    </div>
+    <p style="margin-top: 10pt; color: #EF4444;"><b>Only 4.1% of docs fit in BERT's 512-token limit.</b></p>
+    <p>Standard transformers are unsuitable for this dataset.</p>
+  </div>
+  <div class="right">
+    <p class="label">HYBRID ROUTING STRATEGY</p>
+    <div class="route-box">
+      <p class="pct">66.9%</p>
+      <p><b>Direct Classification</b></p>
+      <p>Documents &lt;= 4,096 tokens</p>
+      <p>Processed by Legal-Longformer directly</p>
+    </div>
+    <div class="route-box">
+      <p class="pct">33.1%</p>
+      <p><b>Summarize, then Classify</b></p>
+      <p>Documents &gt; 4,096 tokens (5,530 docs)</p>
+      <p>Legal-LED (16K) summarizes first</p>
+    </div>
+    <div class="arrow-box">
+      <p>Preserves semantic content better than truncation</p>
+    </div>
+  </div>
+</div>
+</body></html>

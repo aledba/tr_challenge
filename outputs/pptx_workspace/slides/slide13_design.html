@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html><head><style>
+html { background: #0E1A2B; }
+body { width: 720pt; height: 405pt; margin: 0; padding: 0; font-family: Arial, sans-serif; display: flex; flex-direction: column; background-image: url('bg_content.png'); background-size: cover; }
+.topbar { width: 100%; height: 4pt; min-height: 4pt; }
+.topbar img { width: 720pt; height: 4pt; display: block; }
+.header { margin: 24pt 36pt 0 36pt; }
+h1 { color: #00B4D8; font-size: 22pt; margin: 0; }
+.content { margin: 14pt 36pt 0 36pt; flex: 1; }
+.pipeline { display: flex; flex-direction: row; align-items: center; gap: 6pt; margin: 0 0 16pt 0; flex-wrap: wrap; }
+.pipe-step { background: rgba(0, 180, 216, 0.12); border: 1pt solid rgba(0, 180, 216, 0.3); border-radius: 6pt; padding: 8pt 12pt; }
+.pipe-step p { color: #00B4D8; font-size: 10pt; font-weight: bold; margin: 0; text-align: center; }
+.pipe-arrow p { color: #64748B; font-size: 14pt; margin: 0; }
+.cards { display: flex; flex-direction: row; gap: 12pt; }
+.card { flex: 1; background: rgba(255,255,255,0.04); border: 1pt solid rgba(255,255,255,0.08); border-radius: 6pt; padding: 10pt 12pt; }
+.card p.name { color: #E2E8F0; font-size: 10pt; font-weight: bold; margin: 0 0 6pt 0; }
+.card p { color: #94A3B8; font-size: 9pt; margin: 0 0 3pt 0; line-height: 1.4; }
+</style></head>
+<body>
+<div class="topbar"><img src="accent_teal.png"></div>
+<div class="header"><h1>Key Design Decisions</h1></div>
+<div class="content">
+  <p style="color: #94A3B8; font-size: 9pt; margin: 0 0 6pt 0; text-transform: uppercase; letter-spacing: 1pt;">MODULAR PIPELINE</p>
+  <div class="pipeline">
+    <div class="pipe-step"><p>DataLoader</p></div>
+    <div class="pipe-arrow"><p>-></p></div>
+    <div class="pipe-step"><p>DataPreparer</p></div>
+    <div class="pipe-arrow"><p>-></p></div>
+    <div class="pipe-step"><p>Trainer</p></div>
+    <div class="pipe-arrow"><p>-></p></div>
+    <div class="pipe-step"><p>Evaluator</p></div>
+    <div class="pipe-arrow"><p>-></p></div>
+    <div class="pipe-step"><p>Feasibility</p></div>
+  </div>
+  <p style="color: #94A3B8; font-size: 9pt; margin: 0 0 8pt 0; text-transform: uppercase; letter-spacing: 1pt;">KEY COMPONENTS</p>
+  <div class="cards">
+    <div class="card">
+      <p class="name">HybridLegalClassifier</p>
+      <p>Orchestrates summarize + classify</p>
+      <p>Routes docs by token length</p>
+      <p>Handles preprocessing transparently</p>
+    </div>
+    <div class="card">
+      <p class="name">SummaryCache</p>
+      <p>Disk cache for LED summaries</p>
+      <p>Hash-based deduplication</p>
+      <p>5,530 cached summaries</p>
+    </div>
+    <div class="card">
+      <p class="name">DeviceManager</p>
+      <p>Auto-detect CUDA / MPS / CPU</p>
+      <p>Transparent device handling</p>
+      <p>MPS batch size optimization</p>
+    </div>
+    <div class="card">
+      <p class="name">MultiLabelEvaluator</p>
+      <p>Per-class and aggregate metrics</p>
+      <p>Feasibility analysis vs human kappa</p>
+      <p>Threshold optimization</p>
+    </div>
+  </div>
+</div>
+</body></html>

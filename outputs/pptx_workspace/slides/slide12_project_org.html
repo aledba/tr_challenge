@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html><head><style>
+html { background: #0E1A2B; }
+body { width: 720pt; height: 405pt; margin: 0; padding: 0; font-family: Arial, sans-serif; display: flex; flex-direction: column; background-image: url('bg_content.png'); background-size: cover; }
+.topbar { width: 100%; height: 4pt; min-height: 4pt; }
+.topbar img { width: 720pt; height: 4pt; display: block; }
+.header { margin: 18pt 36pt 0 36pt; }
+h1 { color: #00B4D8; font-size: 20pt; margin: 0; }
+.content { display: flex; flex-direction: row; margin: 8pt 36pt 0 36pt; flex: 1; gap: 16pt; }
+.tree { flex: 1.2; background: rgba(255,255,255,0.04); border: 1pt solid rgba(255,255,255,0.08); border-radius: 6pt; padding: 8pt 14pt; }
+.tree p { color: #CBD5E1; font-size: 8.5pt; margin: 0; line-height: 1.5; font-family: Courier New, monospace; }
+.tree p b { color: #00B4D8; }
+.modules { flex: 0.8; }
+.mod { background: rgba(255,255,255,0.04); border: 1pt solid rgba(255,255,255,0.08); border-radius: 6pt; padding: 6pt 10pt; margin: 0 0 4pt 0; }
+.mod p.name { color: #00B4D8; font-size: 9.5pt; font-weight: bold; margin: 0 0 2pt 0; font-family: Courier New, monospace; }
+.mod p { color: #94A3B8; font-size: 8.5pt; margin: 0; }
+.principle { background: rgba(0, 180, 216, 0.08); border-left: 4pt solid #00B4D8; padding: 6pt 10pt; margin: 4pt 0 0 0; border-radius: 0 6pt 6pt 0; }
+.principle p { color: #E2E8F0; font-size: 9.5pt; margin: 0; }
+</style></head>
+<body>
+<div class="topbar"><img src="accent_teal.png"></div>
+<div class="header"><h1>Project Organization</h1></div>
+<div class="content">
+  <div class="tree">
+    <p><b>TR_hiring_exercise/</b></p>
+    <p>  <b>notebooks/</b></p>
+    <p>    01_data_exploration.ipynb</p>
+    <p>    02_modeling.ipynb</p>
+    <p>    ontology_verification.ipynb</p>
+    <p>  <b>src/</b></p>
+    <p>    data_loader.py</p>
+    <p>    data_analyzer.py</p>
+    <p>    model_trainer.py</p>
+    <p>    model_evaluator.py</p>
+    <p>    bert_trainer.py</p>
+    <p>    visualization.py</p>
+    <p>  <b>docs/</b></p>
+    <p>    legal_posture_ontology.md</p>
+    <p>    challenge_description.txt</p>
+    <p>  <b>data/</b></p>
+    <p>    TRDataChallenge2023.txt</p>
+    <p>    label_distribution.json</p>
+    <p>  <b>outputs/</b></p>
+    <p>    summaries/  (5,530 cached)</p>
+    <p>    legal_longformer_best.pt</p>
+    <p>    *.history.json</p>
+  </div>
+  <div class="modules">
+    <div class="mod">
+      <p class="name">data_loader.py</p>
+      <p>Streaming JSON Lines parser</p>
+    </div>
+    <div class="mod">
+      <p class="name">data_analyzer.py</p>
+      <p>DatasetAnalyzer, PostureTaxonomy</p>
+    </div>
+    <div class="mod">
+      <p class="name">model_trainer.py</p>
+      <p>DataPreparer, BaselineTrainer</p>
+    </div>
+    <div class="mod">
+      <p class="name">model_evaluator.py</p>
+      <p>MultiLabelEvaluator, Feasibility</p>
+    </div>
+    <div class="mod">
+      <p class="name">bert_trainer.py</p>
+      <p>HybridLegalClassifier (7 classes)</p>
+    </div>
+    <div class="mod">
+      <p class="name">visualization.py</p>
+      <p>Charts and distribution plots</p>
+    </div>
+    <div class="principle">
+      <p><b>Principle:</b> All logic in src/ modules. Notebooks are clean, concise wrappers.</p>
+    </div>
+  </div>
+</div>
+</body></html>

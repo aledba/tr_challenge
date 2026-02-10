@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html><head><style>
+html { background: #0E1A2B; }
+body { width: 720pt; height: 405pt; margin: 0; padding: 0; font-family: Arial, sans-serif; display: flex; flex-direction: column; background-image: url('bg_content.png'); background-size: cover; }
+.topbar { width: 100%; height: 4pt; min-height: 4pt; }
+.topbar img { width: 720pt; height: 4pt; display: block; }
+.header { margin: 24pt 36pt 0 36pt; }
+h1 { color: #00B4D8; font-size: 22pt; margin: 0; }
+.content { display: flex; flex-direction: row; margin: 14pt 36pt 0 36pt; flex: 1; }
+.left { flex: 1; margin-right: 20pt; }
+.right { flex: 1; }
+p.label { color: #94A3B8; font-size: 9pt; margin: 0 0 6pt 0; text-transform: uppercase; letter-spacing: 1pt; }
+.dim { background: rgba(255,255,255,0.04); border: 1pt solid rgba(255,255,255,0.08); border-radius: 6pt; padding: 10pt 14pt; margin: 0 0 8pt 0; }
+.dim p { color: #CBD5E1; font-size: 10pt; margin: 0 0 3pt 0; line-height: 1.4; }
+.dim p.name { color: #00B4D8; font-size: 11pt; font-weight: bold; margin: 0 0 3pt 0; }
+p { color: #CBD5E1; font-size: 10pt; margin: 0 0 6pt 0; line-height: 1.4; }
+.kappa-box { background: rgba(231, 111, 81, 0.1); border: 1pt solid rgba(231, 111, 81, 0.3); border-radius: 6pt; padding: 12pt 14pt; margin: 0 0 10pt 0; }
+.kappa-box p { color: #E2E8F0; font-size: 10pt; margin: 0 0 3pt 0; }
+.kappa-box p.big { color: #E76F51; font-size: 18pt; font-weight: bold; margin: 0 0 6pt 0; }
+.hier { background: rgba(0, 180, 216, 0.08); border-left: 4pt solid #00B4D8; padding: 10pt 14pt; margin: 0; border-radius: 0 6pt 6pt 0; }
+.hier p { color: #E2E8F0; font-size: 10pt; margin: 0 0 3pt 0; }
+</style></head>
+<body>
+<div class="topbar"><img src="accent_teal.png"></div>
+<div class="header"><h1>Domain Complexity</h1></div>
+<div class="content">
+  <div class="left">
+    <p class="label">LABELS ENCODE 4 ORTHOGONAL DIMENSIONS</p>
+    <div class="dim">
+      <p class="name">Stage</p>
+      <p>WHERE in litigation lifecycle (On Appeal, Trial...)</p>
+    </div>
+    <div class="dim">
+      <p class="name">Motion Type</p>
+      <p>WHAT action is requested (Motion to Dismiss...)</p>
+    </div>
+    <div class="dim">
+      <p class="name">Proceeding Type</p>
+      <p>Legal domain (Family Law, Bankruptcy, Criminal)</p>
+    </div>
+    <div class="dim">
+      <p class="name">Procedural Event</p>
+      <p>WHAT happened procedurally (Post-Trial Hearing)</p>
+    </div>
+  </div>
+  <div class="right">
+    <p class="label">HUMAN BENCHMARK</p>
+    <div class="kappa-box">
+      <p class="big">Cohen's kappa: 0.63 - 0.93</p>
+      <p>Inter-annotator agreement varies by posture</p>
+      <p>This is our target for automation feasibility</p>
+    </div>
+    <p class="label">HIERARCHICAL RELATIONSHIPS</p>
+    <div class="hier">
+      <p><b>IS-A:</b> "MTD for Lack of SMJ" IS-A "Motion to Dismiss"</p>
+      <p><b>DEPENDS-ON:</b> "Motion to Post Bond" requires "On Appeal"</p>
+      <p><b>Implication:</b> Confusing related postures is less severe than unrelated errors</p>
+    </div>
+  </div>
+</div>
+</body></html>

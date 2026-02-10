@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html><head><style>
+html { background: #0E1A2B; }
+body { width: 720pt; height: 405pt; margin: 0; padding: 0; font-family: Arial, sans-serif; display: flex; flex-direction: column; background-image: url('bg_content.png'); background-size: cover; }
+.topbar { width: 100%; height: 4pt; min-height: 4pt; }
+.topbar img { width: 720pt; height: 4pt; display: block; }
+.header { margin: 24pt 36pt 0 36pt; }
+h1 { color: #00B4D8; font-size: 22pt; margin: 0; }
+.content { display: flex; flex-direction: row; margin: 14pt 36pt 0 36pt; flex: 1; gap: 20pt; }
+.left { flex: 1; }
+.right { flex: 1; }
+p.label { color: #94A3B8; font-size: 9pt; margin: 0 0 6pt 0; text-transform: uppercase; letter-spacing: 1pt; }
+p { color: #CBD5E1; font-size: 10pt; margin: 0 0 5pt 0; line-height: 1.4; }
+.metric { display: flex; align-items: baseline; margin: 0 0 8pt 0; }
+.metric p.num { color: #00B4D8; font-size: 24pt; font-weight: bold; margin: 0 8pt 0 0; min-width: 60pt; }
+.metric p.name { color: #94A3B8; font-size: 10pt; margin: 0; }
+.perf-row { display: flex; justify-content: space-between; padding: 5pt 0; border-bottom: 1pt solid rgba(255,255,255,0.06); }
+.perf-row p { margin: 0; font-size: 9.5pt; }
+.perf-row p.lbl { color: #CBD5E1; }
+.perf-row p.val { font-weight: bold; }
+.good { color: #22C55E; }
+.bad { color: #EF4444; }
+.callout { background: rgba(0, 180, 216, 0.08); border-left: 4pt solid #00B4D8; padding: 8pt 14pt; margin: 10pt 0 0 0; border-radius: 0 6pt 6pt 0; }
+.callout p { color: #E2E8F0; font-size: 10pt; margin: 0; }
+</style></head>
+<body>
+<div class="topbar"><img src="accent_teal.png"></div>
+<div class="header"><h1>Baseline Results (TF-IDF)</h1></div>
+<div class="content">
+  <div class="left">
+    <p class="label">OVERALL METRICS</p>
+    <div class="metric"><p class="num">0.751</p><p class="name">F1 Micro</p></div>
+    <div class="metric"><p class="num">0.521</p><p class="name">F1 Macro</p></div>
+    <div class="metric"><p class="num">0.798</p><p class="name">F1 Weighted</p></div>
+    <p style="margin-top: 6pt;">Precision (micro): 0.647</p>
+    <p>Recall (micro): 0.895</p>
+    <div class="callout">
+      <p><b>Key finding:</b> Performance strongly correlates with sample size. Postures with 500+ samples achieve F1 &gt; 0.92.</p>
+    </div>
+  </div>
+  <div class="right">
+    <p class="label">TOP PERFORMERS</p>
+    <div class="perf-row"><p class="lbl">Appellate Review</p><p class="val good">0.940</p></div>
+    <div class="perf-row"><p class="lbl">On Appeal</p><p class="val good">0.915</p></div>
+    <div class="perf-row"><p class="lbl">Review of Admin Decision</p><p class="val good">0.908</p></div>
+    <div class="perf-row"><p class="lbl">Compel Arbitration</p><p class="val good">0.848</p></div>
+    <div class="perf-row"><p class="lbl">Transfer Venue</p><p class="val good">0.824</p></div>
+    <p class="label" style="margin-top: 10pt;">BOTTOM PERFORMERS</p>
+    <div class="perf-row"><p class="lbl">Permanent Injunction</p><p class="val bad">0.143</p></div>
+    <div class="perf-row"><p class="lbl">Set Aside or Vacate</p><p class="val bad">0.179</p></div>
+    <div class="perf-row"><p class="lbl">Reconsideration</p><p class="val bad">0.195</p></div>
+    <div class="perf-row"><p class="lbl">Strike Pleading</p><p class="val bad">0.216</p></div>
+    <div class="perf-row"><p class="lbl">Motion for Costs</p><p class="val bad">0.247</p></div>
+  </div>
+</div>
+</body></html>
