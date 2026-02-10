@@ -9,9 +9,11 @@ scipy>=1.10.0
 # Machine learning
 scikit-learn>=1.3.0
 
-# Deep learning (for Legal-BERT)
+# Deep learning (for Legal-Longformer)
 torch>=2.0.0
 transformers>=4.29.0
+sentencepiece>=0.1.99
+accelerate>=0.20.0
 
 # Visualization
 matplotlib>=3.7.0

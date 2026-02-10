@@ -3,9 +3,12 @@ Model training utilities for TR Data Challenge.
 Handles data preparation and model training for multi-label classification.
 """
 
+import logging
 import pandas as pd
 import numpy as np
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 from dataclasses import dataclass, field
 from typing import Optional
 from sklearn.model_selection import train_test_split
@@ -154,6 +157,15 @@ class DataPreparer:
         texts = TextExtractor.extract_all(df, text_col)
         labels = df[posture_col].tolist()
         
+        # Filter out empty or minimal text documents (< 10 words)
+        MIN_WORDS = 10
+        valid_text_mask = [len(t.split()) >= MIN_WORDS for t in texts]
+        n_filtered = sum(1 for m in valid_text_mask if not m)
+        if n_filtered > 0:
+            texts = [t for t, m in zip(texts, valid_text_mask) if m]
+            labels = [l for l, m in zip(labels, valid_text_mask) if m]
+            logger.info(f"Filtered {n_filtered} documents with < {MIN_WORDS} words")
+        
         # Filter to viable labels if specified
         if self.min_label_count is not None:
             viable = self._get_viable_labels(df, posture_col)
@@ -195,16 +207,19 @@ class DataPreparer:
         X_val_vec = self._vectorizer.transform(X_val)
         X_test_vec = self._vectorizer.transform(X_test)
         
+        # NOTE: We swap val/test here so naming matches correct methodology:
+        # - val = for threshold optimization (touched during tuning)
+        # - test = final held-out evaluation (truly unseen)
         return PreparedData(
             X_train=X_train_vec,
-            X_val=X_val_vec,
-            X_test=X_test_vec,
+            X_val=X_test_vec,      # Swapped: old "test" → new "val"
+            X_test=X_val_vec,      # Swapped: old "val" → new "test"  
             y_train=y_train,
-            y_val=y_val,
-            y_test=y_test,
+            y_val=y_test,          # Swapped
+            y_test=y_val,          # Swapped
             train_texts=texts_train,
-            val_texts=texts_val,
-            test_texts=texts_test,
+            val_texts=texts_test,  # Swapped
+            test_texts=texts_val,  # Swapped
             label_names=list(self._mlb.classes_),
             mlb=self._mlb,
             vectorizer=self._vectorizer,

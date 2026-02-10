@@ -300,11 +300,37 @@ sequenceDiagram
 
 ---
 
+## Data Quality Issues Discovered
+
+During model training, we identified data quality issues that affected pipeline robustness:
+
+### Empty/Minimal Text Documents
+
+**Finding:** 3 documents contain <10 words after text extraction
+
+**Impact:**
+- Caused NaN losses during transformer training
+- Produced cryptic errors in evaluation metrics
+- Misleading statistics in distribution analysis
+
+**Resolution:** Added `MIN_WORDS=10` filter in `DataPreparer`:
+```python
+valid_text_mask = [len(t.split()) >= MIN_WORDS for t in texts]
+logger.info(f"Filtered {n_filtered} documents with < {MIN_WORDS} words")
+```
+
+### Recommendations for Production
+1. Log and quarantine filtered documents for manual review
+2. Consider upstream fix in data ingestion pipeline
+3. Document expected text length distribution
+
+---
+
 ## File Artifacts
 
 | File | Purpose |
 |------|---------|
-| `data/posture_taxonomy.json` | Exported taxonomy for model training pipeline |
+| `data/label_distribution.json` | Label statistics and frequencies for modeling |
 | `outputs/posture_distribution.png` | Label frequency chart |
 
 ---

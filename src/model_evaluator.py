@@ -253,3 +253,107 @@ def create_classification_report_df(
     per_class = df[~df['label'].isin(['micro avg', 'macro avg', 'weighted avg', 'samples avg'])]
     
     return per_class
+
+
+def save_predictions(
+    y_pred: np.ndarray,
+    y_proba: np.ndarray,
+    filepath: str,
+) -> None:
+    """Save predictions and probabilities to disk."""
+    np.savez_compressed(
+        filepath,
+        y_pred=y_pred,
+        y_proba=y_proba
+    )
+
+
+def load_predictions(filepath: str) -> tuple[np.ndarray, np.ndarray]:
+    """Load predictions and probabilities from disk."""
+    data = np.load(filepath)
+    return data['y_pred'], data['y_proba']
+
+
+@dataclass
+class ModelComparison:
+    """Container for comparing two models."""
+    
+    model1_name: str
+    model2_name: str
+    
+    # Predictions
+    y_true: np.ndarray
+    y_pred1: np.ndarray
+    y_pred2: np.ndarray
+    
+    # Labels
+    label_names: list[str]
+    
+    def agreement_matrix(self) -> dict:
+        """Calculate prediction agreement patterns."""
+        both_positive = (self.y_pred1 == 1) & (self.y_pred2 == 1)
+        both_negative = (self.y_pred1 == 0) & (self.y_pred2 == 0)
+        only_model1 = (self.y_pred1 == 1) & (self.y_pred2 == 0)
+        only_model2 = (self.y_pred1 == 0) & (self.y_pred2 == 1)
+        
+        total = self.y_pred1.size
+        
+        return {
+            'both_positive': both_positive.sum(),
+            'both_negative': both_negative.sum(),
+            'only_model1': only_model1.sum(),
+            'only_model2': only_model2.sum(),
+            'agreement_rate': (both_positive.sum() + both_negative.sum()) / total,
+            'disagreement_rate': (only_model1.sum() + only_model2.sum()) / total
+        }
+    
+    def per_class_comparison(self) -> pd.DataFrame:
+        """Compare F1 scores per class."""
+        results = []
+        
+        for i, label in enumerate(self.label_names):
+            y_true_class = self.y_true[:, i]
+            y_pred1_class = self.y_pred1[:, i]
+            y_pred2_class = self.y_pred2[:, i]
+            
+            f1_model1 = f1_score(y_true_class, y_pred1_class, zero_division=0)
+            f1_model2 = f1_score(y_true_class, y_pred2_class, zero_division=0)
+            
+            agreement = (y_pred1_class == y_pred2_class).mean()
+            support = int(y_true_class.sum())
+            
+            results.append({
+                'label': label,
+                f'f1_{self.model1_name}': f1_model1,
+                f'f1_{self.model2_name}': f1_model2,
+                'f1_gap': abs(f1_model1 - f1_model2),
+                'agreement': agreement,
+                'support': support,
+                'better_model': self.model1_name if f1_model1 > f1_model2 else self.model2_name
+            })
+        
+        return pd.DataFrame(results)
+    
+    def ensemble_predictions(self, strategy: str = 'union') -> np.ndarray:
+        """
+        Generate ensemble predictions using different strategies.
+        
+        Args:
+            strategy: 'union' (OR), 'intersection' (AND), or 'best_per_class'
+        """
+        if strategy == 'union':
+            return np.maximum(self.y_pred1, self.y_pred2)
+        elif strategy == 'intersection':
+            return np.minimum(self.y_pred1, self.y_pred2)
+        elif strategy == 'best_per_class':
+            # Use better model for each class
+            comparison = self.per_class_comparison()
+            y_ensemble = self.y_pred1.copy()
+            
+            for i, row in comparison.iterrows():
+                if row['better_model'] == self.model2_name:
+                    y_ensemble[:, i] = self.y_pred2[:, i]
+            
+            return y_ensemble
+        else:
+            raise ValueError(f"Unknown strategy: {strategy}")
