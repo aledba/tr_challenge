@@ -3,7 +3,7 @@
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
-__pycache__/
+d__pycache__/
 *.py[cod]
 *$py.class
 
@@ -183,3 +183,4 @@ outputs/
 Hiring_challenge_Alessandro.zip
 Hiring_challenge_Alessandro/
 data/TRDataChallenge2023.txt.zip
+.DS_Store

@@ -38,7 +38,7 @@ This is a **hiring exercise** for Thomson Reuters Labs. The task is to build an 
 ### Data Statistics
 - **18,000 documents**
 - **224 unique postures** (multi-label: 49.8% of docs have multiple)
-- **79,000+ paragraphs**
+- **542,172 paragraphs**
 - Nested structure: `sections[].paragraphs[]`
 
 ### Label Distribution Tiers
@@ -50,17 +50,31 @@ This is a **hiring exercise** for Thomson Reuters Labs. The task is to build an 
 
 ### Baseline Results (TF-IDF + Logistic Regression)
 ```
-F1 Micro:    0.752
-F1 Macro:    0.526
+F1 Micro:    0.751
+F1 Macro:    0.521
 F1 Weighted: 0.798
 
 Feasibility vs human κ (0.63–0.93):
 - Automatable (F1 ≥ 0.63):  14/41 postures
 - High confidence (≥0.93):   1/41 postures
-- Needs review (0.50-0.63):  7/41 postures
+- Needs review (0.50-0.63):   7/41 postures
 ```
 
 **Key finding**: Performance strongly correlates with sample size. Postures with 500+ samples achieve F1 > 0.92.
+
+### Hybrid Model Results (Legal-Longformer)
+```
+F1 Micro:    0.622
+F1 Macro:    0.436
+F1 Weighted: 0.713
+
+Feasibility vs human κ (0.63–0.93):
+- Automatable (F1 ≥ 0.63):   8/41 postures
+- High confidence (≥0.93):    1/41 postures
+- Needs review (0.50-0.63):   7/41 postures
+```
+
+**Key finding**: The transformer underperformed the baseline. Root causes: limited compute (Apple MPS, not GPU cluster), pos_weight overcompensated for rare classes, only 5 epochs of fine-tuning, and summarization information loss for 33% of documents. Characterizing this honestly is as valuable as reporting success.
 
 ---
 
@@ -116,17 +130,23 @@ y_pred = classifier.predict(test_texts)
 | `TrainingConfig` | Hyperparameter configuration |
 | `TrainingHistory` | Training metrics tracking |
 
-### Training Configuration
+### Training Configuration (Actual)
 ```python
 config = TrainingConfig(
-    batch_size=4,
-    gradient_accumulation_steps=4,  # Effective batch = 16
-    learning_rate=2e-5,
+    batch_size=8,
+    gradient_accumulation_steps=4,  # Effective batch = 32
+    learning_rate=1e-5,
     num_epochs=5,
     warmup_ratio=0.1,
     early_stopping_patience=2,
+    use_pos_weight=True,  # Compensate for class imbalance
 )
 ```
+
+### Training History
+- Best epoch: 4 (val_f1_micro=0.628)
+- Training converged but val F1 plateaued around 0.62
+- Early stopping did not trigger (5 epochs completed)
 
 ---
 
@@ -250,24 +270,56 @@ Download from the challenge link and place in `data/` folder.
 ## Immediate TODO
 
 1. ✅ **Run notebook**: Execute `02_modeling.ipynb` cells 1-18 (baseline)
-2. ✅ **Run notebook**: Execute cells 19-33 (Legal-Longformer training)
-3. ⏳ **Write Question 3** response (next steps / production planning)
-4. ⏳ **Package** for submission (zip without data)
+2. ✅ **Run notebook**: Execute cells 19-33 (Legal-Longformer training + evaluation)
+3. ✅ **Update CLAUDE.md**: Fill in actual results from notebook runs
+4. ⏳ **Write Question 3** response (next steps / production planning)
+5. ⏳ **Create interview presentation** (PPT deck)
+6. ⏳ **Package** for submission (zip without data)
 
-## Results (After Running Notebook)
+## Results (Notebook Executed)
 
-After executing the notebook, update this section with actual results:
-
+### Model Comparison
 ```
-# TODO: Fill in after running
-Hybrid Model Performance:
-  F1 Micro:    [TBD]
-  F1 Macro:    [TBD]
-
-Improvement over Baseline:
-  F1 Micro:    +[TBD]
-
-Automation Feasibility:
-  Fully automatable: [TBD]/41 postures
-  High confidence:   [TBD]/41 postures
+Metric              TF-IDF Baseline    Legal-Longformer    Delta
+F1 Micro            0.751              0.622               -0.129
+F1 Macro            0.521              0.436               -0.085
+F1 Weighted         0.798              0.713               -0.085
+Precision (micro)   0.647              0.471               -0.176
+Recall (micro)      0.895              0.916               +0.021
 ```
+
+### Baseline Top/Bottom Performers
+```
+TOP 3:    Appellate Review (F1=0.940), On Appeal (F1=0.915), Review of Admin Decision (F1=0.908)
+BOTTOM 3: Motion for Permanent Injunction (F1=0.143), Motion to Set Aside (F1=0.179), Motion for Reconsideration (F1=0.195)
+```
+
+### Document Length Analysis
+- Token mean: 3,786 | Token median: 2,693 | Token max: 72,080
+- Only 4.1% of docs fit BERT's 512-token limit
+- Longformer (4,096 tokens) covers 65.1% (11,194 docs direct classify)
+- 33.1% (5,530 docs) required LED summarization before classification
+- All 5,530 summaries cached to disk for reproducibility
+
+### Automation Feasibility (Best Model = Baseline)
+```
+Fully automatable (F1 >= 0.63):  14/41 postures
+High confidence (F1 >= 0.93):     1/41 postures
+Needs human review:                7/41 postures
+Not feasible:                     20/41 postures
+
+Recommended tiered deployment:
+  Full Automation:   1 posture  (Appellate Review)
+  Assisted Labeling: 13 postures (model + human review)
+  Human Review:      7 postures  (model suggests, human decides)
+  Human Only:        20 postures (insufficient model confidence)
+
+Expected efficiency gain: ~34% of labeling can be automated or assisted
+```
+
+### Why the Transformer Underperformed
+1. **Limited compute**: Apple MPS (not GPU cluster), batch_size=8
+2. **pos_weight overcompensation**: Rare class weighting too aggressive (max=50x)
+3. **Only 5 epochs**: Best epoch was 4, model likely needed more training
+4. **Summarization loss**: 33% of docs lost information through LED compression
+5. **No hyperparameter tuning**: Single configuration run
