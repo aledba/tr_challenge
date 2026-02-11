@@ -3,9 +3,9 @@
 
 **Objective**: Build and evaluate models for automated classification of procedural postures in judicial opinions.
 
-**Dataset**: 18,000 legal documents → 16,724 after filtering (41 viable posture labels with ≥50 samples, multi-label avg 2.1 labels/doc)
+**Dataset**: 18,000 legal documents → 16,724 after filtering (41 viable posture labels with ≥50 samples, multi-label avg 1.54 labels/doc)
 
-**Best Result**: F1 Micro 0.783 (Ensemble), exceeding human low agreement (κ=0.63) on 28/41 classes
+**Best Result**: F1 Micro 0.783 (Ensemble AND), with 18/41 classes exceeding human low agreement (κ=0.63)
 
 ---
 
@@ -40,7 +40,7 @@ jupyter notebook notebooks/04_ensemble_analysis.ipynb
 
 ### Project Structure
 ```
-tr_challenge/
+TR_hiring_exercise/
 ├── data/
 │   ├── TRDataChallenge2023.txt           # JSON Lines format (not in repo)
 │   └── label_distribution.json           # Label statistics and frequencies
@@ -51,20 +51,28 @@ tr_challenge/
 │   └── question_3_next_steps.md          # Improvement roadmap
 ├── notebooks/
 │   ├── 01_data_exploration.ipynb         # EDA + statistics
-│   ├── 02_modeling.ipynb                 # TF-IDF baseline
-│   ├── 03_evaluation.ipynb               # Legal-Longformer evaluation
+│   ├── 02_modeling.ipynb                 # TF-IDF baseline + transformer training
+│   ├── 03_evaluation.ipynb               # Threshold optimization + evaluation
 │   └── 04_ensemble_analysis.ipynb        # Complementarity analysis
 ├── src/
+│   ├── __init__.py
 │   ├── data_loader.py                    # JSON Lines parser
+│   ├── data_analyzer.py                  # Dataset analysis + taxonomy
 │   ├── model_trainer.py                  # Data prep + TF-IDF
 │   ├── bert_trainer.py                   # Transformer training
 │   ├── model_evaluator.py                # Metrics + feasibility
 │   └── visualization.py                  # Plotting utilities
+├── tests/
+│   ├── test_data_loader.py
+│   ├── test_model_trainer.py
+│   ├── test_model_evaluator.py
+│   └── test_bert_trainer.py
 ├── outputs/
 │   ├── legal_longformer_best.pt          # Trained model checkpoint
 │   ├── tfidf_test_predictions.npz        # Baseline predictions
 │   ├── legal_longformer_test_predictions.npz  # Transformer predictions
-│   └── summaries/                        # Cached document summaries
+│   ├── *.history.json                    # Training history
+│   └── summaries/                        # Cached document summaries (5,530 files)
 └── requirements.txt
 ```
 
@@ -100,18 +108,18 @@ tr_challenge/
 **Key Statistics**:
 - **Documents**: 18,000 raw → 16,724 after filtering (removed docs with only rare labels)
 - **Postures**: 224 unique labels → filtered to 41 classes (≥50 samples each)
-- **Paragraphs**: 79,087 total (avg 4.7 per doc)
-- **Multi-label**: 49.8% of documents have multiple postures (avg 2.1 labels/doc)
+- **Paragraphs**: 542,172 total (avg 30 per doc)
+- **Multi-label**: 49.8% of documents have multiple postures (avg 1.54 labels/doc)
 
 **Class Distribution**:
 - Top 3 classes: "On Appeal" (9,197), "Appellate Review" (4,652), "Review of Admin Decision" (2,773)
 - Long tail: 183 classes with <50 samples (excluded from modeling)
-- 41 viable classes cover 93.5% of all label occurrences
+- 41 viable classes cover 94.8% of all label occurrences
 
 **Text Characteristics**:
-- Median doc length: 1,247 tokens
-- 10% of docs exceed 4,096 tokens (Longformer limit)
-- Longest: 54,663 tokens → requires summarization strategy
+- Median doc length: 2,693 tokens
+- ~35% of docs exceed 4,096 tokens (Longformer limit)
+- Longest: 72,080 tokens → requires summarization strategy
 
 **Decision**: Use min_label_count=50 threshold to balance class coverage and model tractability.
 
@@ -135,9 +143,9 @@ tr_challenge/
 
 **Results** (Test Set):
 - **F1 Micro**: 0.752
-- **F1 Macro**: 0.533 (21pp gap indicates class imbalance)
-- **Precision**: 0.744
-- **Recall**: 0.760
+- **F1 Macro**: 0.533 (22pp gap indicates class imbalance)
+- **Precision**: 0.648
+- **Recall**: 0.897
 
 **Strengths**:
 - Fast inference (10ms/doc)
@@ -146,10 +154,10 @@ tr_challenge/
 
 **Weaknesses**:
 - No semantic understanding
-- Struggles with rare classes (13 classes F1 < 0.50)
+- Struggles with rare classes (17 classes F1 < 0.50)
 - Limited context window (TF-IDF treats docs as bags of words)
 
-**Feasibility Assessment**: Baseline exceeds human low agreement (κ=0.63) on 28/41 classes. Automation feasible for high-frequency postures with clear lexical signals.
+**Feasibility Assessment**: Baseline exceeds human low agreement (κ=0.63) on 13/41 classes. However, these 13 classes cover the majority of labeling volume due to their high frequency.
 
 ---
 
@@ -159,16 +167,14 @@ tr_challenge/
 
 #### 4.1 Model Architecture
 
-**Base Model**: `nlpaueb/legal-bert-base-uncased` → fine-tuned to Legal-Longformer
+**Base Model**: `lexlms/legal-longformer-base`
 - **Context window**: 4,096 tokens (vs. BERT's 512)
 - **Architecture**: Longformer attention pattern (local + global)
-- **Training approach**: Two-stage
-  1. Continued pre-training with Longformer position embeddings
-  2. Fine-tuning on procedural posture classification
+- **Pre-trained on legal corpora** by the same authors as Legal-BERT
 
 #### 4.2 Handling Long Documents
 
-**Problem**: 10% of documents exceed 4,096 token limit (up to 54K tokens)
+**Problem**: ~35% of documents exceed 4,096 token limit (up to 72K tokens)
 
 **Solution**: Hybrid approach with automatic summarization
 - **Direct classification**: Docs ≤4,096 tokens → use full text
@@ -176,7 +182,7 @@ tr_challenge/
 - **Summarization model**: `nsi319/legal-led-base-16384` (Legal-LED, 16K context)
 - **Caching**: Summaries saved to `outputs/summaries/` (one-time cost)
 
-**Impact**: 1,681 of 5,018 validation+test docs required summarization (33.5%)
+**Impact**: 5,530 of 16,724 docs required summarization (33%)
 
 #### 4.3 Training Configuration
 
@@ -191,29 +197,29 @@ tr_challenge/
 **Threshold Optimization**:
 - Initial: Global threshold = 0.5
 - Validation sweep: Tested thresholds 0.1 to 0.8
-- Optimal: Per-class thresholds (range 0.15–0.85, mean 0.52)
+- Optimal: Per-class thresholds (range 0.45–0.90, mean 0.72)
 
 #### 4.4 Results (Test Set)
 
 | Configuration | F1 Micro | F1 Macro | Precision | Recall |
 |---------------|----------|----------|-----------|--------|
-| Threshold=0.5 | 0.633 | 0.472 | 0.697 | 0.580 |
+| Threshold=0.5 | 0.633 | 0.472 | 0.479 | 0.936 |
 | Threshold=0.6 | 0.702 | 0.542 | 0.585 | 0.876 |
-| **Per-class thresholds** | **0.770** | **0.560** | **0.794** | **0.748** |
+| **Per-class thresholds** | **0.774** | **0.600** | **0.712** | **0.847** |
 
-**Improvement over TF-IDF**: +1.8pp F1 Micro with per-class thresholds
+**Improvement over TF-IDF**: +2.1pp F1 Micro, +6.7pp F1 Macro with per-class thresholds
+
+**Key Insight**: At default threshold 0.5, the transformer appeared to fail (F1 Micro 0.633 vs baseline 0.752). The problem was over-prediction: recall 0.94 but precision only 0.48. Per-class threshold optimization (finding optimal cutoff per label on validation data) fixed this, turning a "failed" model into the best single model.
 
 **Strengths**:
 - Semantic understanding of legal context
-- Better on classes with ambiguous keywords
-- Higher precision (0.794 vs. 0.744)
+- Better on rare classes (+6.7pp F1 Macro)
+- Higher precision with per-class thresholds (0.712 vs. 0.648)
 
 **Weaknesses**:
 - 50ms inference latency per doc (5x slower than TF-IDF)
-- Still struggles on 13 rare classes (same as baseline)
-- Summarization introduces potential information loss
-
-**Feasibility Update**: Legal-Longformer exceeds human low agreement on 30/41 classes (vs. 28 for TF-IDF). Marginal improvement justifies additional complexity only if latency acceptable.
+- Still struggles on rare classes with limited training data
+- Summarization introduces potential information loss for 33% of docs
 
 ---
 
@@ -241,14 +247,14 @@ tr_challenge/
 | Strategy | Logic | F1 Micro | Improvement |
 |----------|-------|----------|-------------|
 | TF-IDF alone | Baseline | 0.7524 | — |
-| Longformer alone | Baseline | 0.6333 | -11.9pp |
+| Longformer alone | Threshold=0.5 | 0.6333 | -11.9pp |
 | **Intersection (AND)** | Both predict 1 | **0.7827** | **+3.03pp** ✓ |
-| Union (OR) | Either predicts 1 | 0.7142 | -3.82pp |
-| Weighted | TF-IDF on strong classes | 0.7580 | +0.56pp |
+| Union (OR) | Either predicts 1 | 0.6181 | -13.4pp |
+| Weighted | TF-IDF on strong classes | 0.7403 | -1.2pp |
 
 **Winner**: Intersection (AND) strategy
-- **Rationale**: Both models have high precision; when they agree on positive, very likely correct
-- **Tradeoff**: Boosts precision to 0.801, maintains recall at 0.766
+- **Rationale**: When both models agree on a positive prediction, it's very likely correct
+- **Tradeoff**: Boosts precision to 0.713, maintains recall at 0.868
 - **Implementation**: `y_pred_ensemble = np.minimum(y_pred_tfidf, y_pred_longformer)`
 
 #### 5.3 Classes Still Struggling
@@ -266,11 +272,13 @@ tr_challenge/
 
 ### Model Performance Comparison (Test Set)
 
-| Model | F1 Micro | F1 Macro | Classes F1≥0.63 | Inference |
-|-------|----------|----------|-----------------|-----------|
-| TF-IDF Baseline | 0.752 | 0.533 | 28/41 | 10 ms/doc |
-| Legal-Longformer | 0.770 | 0.560 | 30/41 | 50 ms/doc |
-| **Ensemble (AND)** | **0.783** | **0.575** | **32/41** | **60 ms/doc** |
+| Model | F1 Micro | F1 Macro | Precision | Recall | Classes F1≥0.63 |
+|-------|----------|----------|-----------|--------|-----------------|
+| TF-IDF Baseline | 0.752 | 0.533 | 0.648 | 0.897 | 13/41 |
+| LF Per-Class Thresh. | 0.774 | 0.600 | 0.712 | 0.847 | 23/41 |
+| **Ensemble (AND)** | **0.783** | **0.575** | **0.713** | **0.868** | **18/41** |
+
+**Note**: The ensemble uses LF predictions at default threshold (0.5), not per-class optimized. The intersection strategy naturally filters out the LF over-predictions, achieving the highest F1 Micro overall.
 
 ### Feasibility Recommendation
 
@@ -278,15 +286,16 @@ tr_challenge/
 
 **Rationale**:
 - Ensemble achieves F1 Micro 0.783, comparable to human moderate agreement
-- 32/41 classes (78%) exceed minimum automation threshold (F1≥0.63)
-- High precision (0.801) reduces false positive burden on reviewers
+- 18/41 classes (44%) exceed minimum automation threshold (F1≥0.63)
+- These high-performing classes cover the majority of labeling volume (~92%) due to their frequency
 
 **Deployment Strategy**:
-- **Fully automate**: 8 classes with F1≥0.80 (high confidence)
-- **Assisted automation**: 24 classes with 0.63≤F1<0.80 (suggest labels, human review)
-- **Manual only**: 9 classes with F1<0.63 (low confidence, human required)
+- **Full automation**: 1 class with F1≥0.93 (Appellate Review, highest confidence)
+- **Assisted automation**: 12–17 classes with 0.63≤F1<0.93 (model suggests, human reviews)
+- **Human review**: ~11 classes with 0.50≤F1<0.63 (model assists, human decides)
+- **Manual only**: ~17 classes with F1<0.50 (insufficient model confidence)
 
-**ROI Estimate**: Automating 32 classes covers ~90% of label volume, reducing annotation time by 65-75% (accounting for review overhead).
+**ROI Estimate**: Automating the top-performing classes covers ~92% of label volume, significantly reducing annotation time while maintaining quality through human oversight on uncertain predictions.
 
 ---
 
@@ -299,7 +308,7 @@ tr_challenge/
 - `outputs/legal_longformer_best.history.json` - Training curves
 - `outputs/tfidf_test_predictions.npz` - TF-IDF predictions (y_pred, y_proba)
 - `outputs/legal_longformer_test_predictions.npz` - Longformer predictions (y_pred, y_proba)
-- `outputs/summaries/*.json` - Cached document summaries (4,673 files)
+- `outputs/summaries/*.json` - Cached document summaries (5,530 files)
 
 **NPZ Format**: NumPy compressed archive containing:
 ```python
@@ -321,16 +330,15 @@ y_proba = data['y_proba']  # shape: (2509, 41), probability scores
 
 **Storage**:
 - Models: 1.2 GB (Legal-Longformer) + 50 MB (TF-IDF)
-- Summaries cache: 150 MB (4,673 files)
+- Summaries cache: 150 MB (5,530 files)
 - Predictions: 2 MB per model per test set
 
 ### Label Statistics
 
 **Class Distribution** (41 classes, ≥50 samples):
-- **High performers** (F1≥0.80): 8 classes, avg 250 samples
-- **Automatable** (0.63≤F1<0.80): 24 classes, avg 180 samples
-- **Review needed** (0.50≤F1<0.63): 6 classes, avg 120 samples
-- **Struggling** (F1<0.50): 3 classes, avg 85 samples
+- **Automatable** (F1≥0.63): 13 classes (TF-IDF baseline), up to 23 with per-class thresholds
+- **Needs review** (0.50≤F1<0.63): 11 classes
+- **Not feasible** (F1<0.50): 17 classes
 
 **Annotation Agreement** (from challenge description):
 - Human κ high: 0.93 (e.g., "Appellate Review")
@@ -345,7 +353,7 @@ y_proba = data['y_proba']  # shape: (2509, 41), probability scores
 - Remove empty paragraphs
 
 **Long Document Handling**:
-- Tokenize with `nlpaueb/legal-bert-base-uncased` tokenizer
+- Tokenize with `lexlms/legal-longformer-base` tokenizer
 - If ≤4,096 tokens: Use full text
 - If >4,096 tokens: Summarize using Legal-LED
   - Target length: ~1,024 tokens (leaves buffer for classification)
@@ -404,9 +412,9 @@ jupyter==1.0.0
 ## Citations & Acknowledgments
 
 **Pre-trained Models**:
-- Legal-BERT: Chalkidis et al. (2020) - `nlpaueb/legal-bert-base-uncased`
-- Longformer: Beltagy et al. (2020) - Position embedding extension
+- Legal-Longformer: `lexlms/legal-longformer-base` - Longformer pre-trained on legal corpora
 - Legal-LED: `nsi319/legal-led-base-16384` - Legal domain Longformer Encoder-Decoder
+- Longformer: Beltagy et al. (2020) - Efficient attention for long documents
 
 **Code References**:
 - Hugging Face Transformers library for model implementation

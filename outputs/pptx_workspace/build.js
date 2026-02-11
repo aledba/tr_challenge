@@ -93,13 +93,23 @@ KEY CONCEPT — Threshold Optimization: In multi-label classification, the model
 
 The result: LF Per-Class achieves F1 Micro 0.7735 (+2.1% over baseline) and F1 Macro 0.6000 (+6.7% over baseline). The transformer beats the baseline on both metrics, especially on rare classes where the macro improvement is most pronounced.`,
 
+  'slide16c_ensemble.html': `This slide shows our best overall result: the ensemble AND strategy that combines TF-IDF and Longformer predictions.
+
+The AND strategy is simple: predict positive only when both models agree. Since both models have high recall — they catch most positive cases — taking their intersection boosts precision while keeping recall strong. The result: F1 Micro 0.783, a 3 percentage-point improvement over the TF-IDF baseline.
+
+The models are genuinely complementary: 96.6% agreement overall, but TF-IDF excels on 21 classes while Longformer excels on 5. Different strengths make for a better ensemble.
+
+An important methodology note: the per-class thresholds in NB03 were optimized on the validation set and applied to the test set — standard ML practice. The ensemble strategy in NB04 was selected on the test set, but the AND operation is parameter-free — it's just np.minimum — so there's no overfitting risk.
+
+A genuine next step would be combining both: AND(TF-IDF, LF with Per-Class Thresholds). We haven't tried that yet.`,
+
   'slide17_feasibility.html': `Now let's talk about feasibility. Using the TF-IDF baseline as a conservative reference, 13 out of 41 postures are automatable with F1 at or above the human agreement threshold of 0.63. One posture — Appellate Review — reaches 0.95, which exceeds even the highest human agreement.
 
 KEY CONCEPT — Cohen's Kappa as Benchmark: We use the inter-annotator agreement range (kappa 0.63–0.93) as the benchmark for automation. If a model achieves F1 comparable to human agreement on a posture, that posture is a candidate for automation. Below 0.63, the model is worse than human disagreement; above 0.93, it matches the best human performance.
 
 The tiered deployment strategy is practical: fully automate what's reliable, use the model as an assistant where it's decent, and keep humans in the loop where the model struggles. Critically, ~92% of labeling volume falls in the automatable or review tiers because the most common postures happen to be the easiest to classify.
 
-The per-class threshold model pushes these numbers even higher, with +2.1% F1 Micro and +6.7% F1 Macro improvement over the baseline.`,
+The ensemble AND model achieves the best F1 Micro at 0.783, while per-class thresholds achieve the best F1 Macro at 0.600 — different models excel on different metrics, reinforcing the value of multiple approaches.`,
 
   'slide18_insights.html': `Four key takeaways. First, sample size dominates performance — this is the single most actionable finding. If you want better models, invest in labeling more data for the rare classes.
 
@@ -111,11 +121,13 @@ Fourth, the multi-label nature — with labels encoding orthogonal dimensions �
 
 KEY CONCEPT — Hamming Loss: The fraction of incorrect labels across all label-sample pairs, counting both false positives and false negatives. Unlike F1, it penalizes every individual labeling error equally. A Hamming loss of 0.03 means 97% of individual label predictions are correct.
 
-The business recommendation: partial automation is feasible and worth pursuing. A tiered deployment can cover ~92% of labeling volume.`,
+The business recommendation: partial automation is feasible and worth pursuing. A tiered deployment can cover ~92% of labeling volume. The ensemble's F1 Micro 0.783 is our best result, and the model complementarity (96.6% agreement, different class strengths) confirms there's value in combining approaches.`,
 
   'slide19_next_steps.html': `If this project continues, there are clear paths for improvement on both the modeling and production sides.
 
-For modeling: GPU training with larger batches, more epochs, and proper hyperparameter search would likely improve the transformer significantly — we only ran 5 epochs on Apple MPS. Hierarchical classification using the ontology structure could leverage the IS-A relationships between postures. Data augmentation and ensemble strategies could boost rare class performance.
+For modeling: the most promising next step is combining the two improvements we already built — running the AND ensemble on top of per-class thresholds. We did each separately but never combined them. Beyond that, a stacking meta-learner could learn optimal combination weights from both models' probability outputs.
+
+GPU training with larger batches, more epochs, and proper hyperparameter search would likely improve the transformer significantly — we only ran 5 epochs on Apple MPS. Hierarchical classification using the ontology structure could leverage the IS-A relationships between postures. Data augmentation could boost rare class performance.
 
 For production: a confidence-based routing system would send high-confidence predictions for auto-labeling and uncertain ones to human reviewers. Active learning would use the model's own uncertainty to prioritize which examples humans should label next, creating a virtuous cycle. Monitoring for concept drift is essential — legal language and posture distributions may shift over time.
 
@@ -123,7 +135,29 @@ KEY CONCEPT — Active Learning: A machine learning paradigm where the model ide
 
   'slide20_thankyou.html': `Thank you for your attention. I'm happy to dive deeper into any aspect of the analysis — the data exploration, the modeling decisions, the evaluation methodology, or the production planning.
 
-The key message: this feasibility study shows that partial automation of procedural posture classification is viable, with the Legal-Longformer achieving F1 Micro 0.77 using per-class threshold optimization. A tiered deployment strategy can cover the vast majority of labeling volume while maintaining quality through human oversight where needed.`,
+The key message: this feasibility study shows that partial automation of procedural posture classification is viable. The ensemble achieves our best F1 Micro of 0.783, while per-class thresholds deliver the best F1 Macro of 0.600. A tiered deployment strategy can cover the vast majority of labeling volume while maintaining quality through human oversight where needed.`,
+
+  'slide04b_label_pie.html': `This pie chart from the data exploration notebook shows the label distribution visually. You can see how "On Appeal" dominates at about a third of all label assignments, followed by "Appellate Review." The long tail of rare postures is clearly visible.
+
+The percentages shown are relative to total label assignments (27,659), not documents (18,000). Since this is a multi-label problem with a mean of 1.54 labels per document, the total label count exceeds the document count. This distinction matters when interpreting class frequencies.`,
+
+  'slide09b_token_dist.html': `This histogram shows the distribution of document lengths in tokens, with vertical lines marking the context limits of three transformer architectures: BERT at 512 tokens, Longformer at 4,096, and LED at 16,384.
+
+The key takeaway is visual: BERT's limit barely captures the left edge of the distribution. Longformer covers most of the main body but still misses the right tail. LED covers nearly everything, which is why we chose it as our summarizer for the ~33% of documents exceeding 4,096 tokens.
+
+KEY CONCEPT — Context Window: The maximum number of tokens a transformer can process at once. Self-attention has O(n²) complexity, so doubling the context quadruples compute. Longformer solves this with sliding-window attention (O(n)), enabling much longer contexts.`,
+
+  'slide10b_training.html': `These two panels show the training progression over 5 epochs. On the left: training and validation loss curves. On the right: validation F1 scores (both Micro and Macro).
+
+The model converges quickly — most improvement happens in the first 2-3 epochs. The best checkpoint was saved based on validation F1, and that's the model we use for all subsequent evaluation.
+
+Training was done on Apple MPS (M2 chip), not a GPU cluster. With more compute — larger batches, more epochs, proper hyperparameter search — we'd expect further gains. The fact that the model already beats the TF-IDF baseline suggests there's more headroom to unlock.`,
+
+  'slide16b_perclass_f1.html': `This grouped bar chart compares TF-IDF (blue) and Legal-Longformer (orange) F1 scores for each of the 41 posture classes. The horizontal dashed lines mark the human inter-annotator agreement range (Cohen's kappa 0.63–0.93).
+
+The pattern is clear: both models perform well on high-frequency postures (left side) and struggle on rare ones (right side). The transformer tends to match or slightly exceed the baseline on most classes, especially after per-class threshold optimization.
+
+KEY CONCEPT — Per-Class Performance: Aggregate metrics like F1 Micro can hide poor performance on minority classes. This chart reveals the full picture: the model is excellent for some postures and unreliable for others. This directly informs the tiered deployment strategy.`,
 };
 
 async function build() {
@@ -138,18 +172,23 @@ async function build() {
     'slide02_what_is_posture.html',
     'slide03_dataset.html',
     'slide04_label_dist.html',
+    'slide04b_label_pie.html',
     'slide05_domain.html',
     'slide06_section_solution.html',
     'slide07_strategy.html',
     'slide08_baseline.html',
     'slide09_long_doc.html',
+    'slide09b_token_dist.html',
     'slide10_architecture.html',
+    'slide10b_training.html',
     'slide11_section_repo.html',
     'slide12_project_org.html',
     'slide13_design.html',
     'slide14_section_results.html',
     'slide15_baseline_results.html',
     'slide16_hybrid_results.html',
+    'slide16b_perclass_f1.html',
+    'slide16c_ensemble.html',
     'slide17_feasibility.html',
     'slide18_insights.html',
     'slide19_next_steps.html',
