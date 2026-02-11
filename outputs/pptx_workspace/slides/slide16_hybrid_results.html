@@ -4,48 +4,84 @@ html { background: #0E1A2B; }
 body { width: 720pt; height: 405pt; margin: 0; padding: 0; font-family: Arial, sans-serif; display: flex; flex-direction: column; background-image: url('bg_content.png'); background-size: cover; }
 .topbar { width: 100%; height: 4pt; min-height: 4pt; }
 .topbar img { width: 720pt; height: 4pt; display: block; }
-.header { margin: 24pt 36pt 0 36pt; }
-h1 { color: #E76F51; font-size: 22pt; margin: 0; }
-.content { display: flex; flex-direction: row; margin: 14pt 36pt 0 36pt; flex: 1; gap: 20pt; }
-.left { flex: 1; }
-.right { flex: 1; }
+.header { margin: 20pt 36pt 0 36pt; }
+h1 { color: #00B4D8; font-size: 20pt; margin: 0; }
+h1 b { color: #22C55E; }
+.content { display: flex; flex-direction: column; margin: 10pt 36pt 0 36pt; flex: 1; }
 p.label { color: #94A3B8; font-size: 9pt; margin: 0 0 6pt 0; text-transform: uppercase; letter-spacing: 1pt; }
-p { color: #CBD5E1; font-size: 10pt; margin: 0 0 5pt 0; line-height: 1.4; }
-.compare-row { display: flex; justify-content: space-between; padding: 6pt 0; border-bottom: 1pt solid rgba(255,255,255,0.06); }
-.compare-row p { margin: 0; font-size: 10pt; }
-.compare-row p.metric { color: #94A3B8; }
-.compare-row p.base { color: #22C55E; }
-.compare-row p.hybrid { color: #E76F51; }
-.compare-row p.delta { color: #EF4444; font-size: 9pt; }
-.reason { background: rgba(255,255,255,0.04); border: 1pt solid rgba(255,255,255,0.08); border-radius: 6pt; padding: 8pt 12pt; margin: 0 0 6pt 0; }
-.reason p { color: #CBD5E1; font-size: 9.5pt; margin: 0; }
-.reason p b { color: #E76F51; }
-.honest { background: rgba(0, 180, 216, 0.08); border-left: 4pt solid #00B4D8; padding: 10pt 14pt; margin: 8pt 0 0 0; border-radius: 0 6pt 6pt 0; }
-.honest p { color: #E2E8F0; font-size: 10pt; margin: 0; }
+.table-header { display: flex; padding: 6pt 0; border-bottom: 2pt solid rgba(255,255,255,0.15); }
+.table-row { display: flex; padding: 5pt 0; border-bottom: 1pt solid rgba(255,255,255,0.06); }
+.table-row-highlight { display: flex; padding: 5pt 0; border-bottom: 1pt solid rgba(34,197,94,0.3); background: rgba(34,197,94,0.06); border-radius: 3pt; }
+.col-metric { flex: 1.2; }
+.col-val { flex: 1; text-align: center; }
+.table-header p { color: #94A3B8; font-size: 9pt; font-weight: bold; margin: 0; }
+.table-header p.best { color: #22C55E; }
+.table-row p, .table-row-highlight p { margin: 0; font-size: 10pt; }
+.table-row p.metric, .table-row-highlight p.metric { color: #CBD5E1; }
+.table-row p.val, .table-row-highlight p.val { color: #94A3B8; }
+.table-row p.dim, .table-row-highlight p.dim { color: #64748B; }
+.table-row-highlight p.best { color: #22C55E; font-weight: bold; }
+.table-row-highlight p.metric { color: #E2E8F0; font-weight: bold; }
+.bottom { display: flex; flex-direction: row; margin: 8pt 0 0 0; gap: 16pt; flex: 1; }
+.insight { flex: 1; background: rgba(0, 180, 216, 0.08); border-left: 4pt solid #00B4D8; padding: 8pt 12pt; border-radius: 0 6pt 6pt 0; }
+.insight p { color: #E2E8F0; font-size: 9.5pt; margin: 0 0 3pt 0; line-height: 1.3; }
+.insight p.title { color: #00B4D8; font-size: 10pt; font-weight: bold; margin: 0 0 4pt 0; }
+.delta { flex: 0.8; background: rgba(34, 197, 94, 0.08); border: 1pt solid rgba(34, 197, 94, 0.2); border-radius: 6pt; padding: 8pt 12pt; text-align: center; display: flex; flex-direction: column; justify-content: center; }
+.delta p.big { color: #22C55E; font-size: 22pt; font-weight: bold; margin: 0 0 2pt 0; }
+.delta p { color: #E2E8F0; font-size: 9pt; margin: 0; }
 </style></head>
 <body>
-<div class="topbar"><img src="accent_orange.png"></div>
-<div class="header"><h1>Hybrid Model Results: An Honest Assessment</h1></div>
+<div class="topbar"><img src="accent_teal.png"></div>
+<div class="header"><h1>Threshold Optimization: <b>Transformer Wins</b></h1></div>
 <div class="content">
-  <div class="left">
-    <p class="label">MODEL COMPARISON</p>
-    <div class="compare-row"><p class="metric">Metric</p><p class="base">Baseline</p><p class="hybrid">Hybrid</p><p class="delta">Delta</p></div>
-    <div class="compare-row"><p class="metric">F1 Micro</p><p class="base">0.751</p><p class="hybrid">0.622</p><p class="delta">-0.129</p></div>
-    <div class="compare-row"><p class="metric">F1 Macro</p><p class="base">0.521</p><p class="hybrid">0.436</p><p class="delta">-0.085</p></div>
-    <div class="compare-row"><p class="metric">F1 Weighted</p><p class="base">0.798</p><p class="hybrid">0.713</p><p class="delta">-0.085</p></div>
-    <div class="compare-row"><p class="metric">Precision</p><p class="base">0.647</p><p class="hybrid">0.471</p><p class="delta">-0.176</p></div>
-    <div class="compare-row"><p class="metric">Recall</p><p class="base">0.895</p><p class="hybrid">0.916</p><p class="delta">+0.021</p></div>
-    <div class="honest">
-      <p><b>The transformer underperformed the baseline.</b> Characterizing this honestly is as valuable as reporting success.</p>
-    </div>
+  <p class="label">MODEL COMPARISON (TEST SET)</p>
+  <div class="table-header">
+    <div class="col-metric"><p>Metric</p></div>
+    <div class="col-val"><p>TF-IDF</p></div>
+    <div class="col-val"><p>LF (0.5)</p></div>
+    <div class="col-val"><p>LF (0.6)</p></div>
+    <div class="col-val"><p class="best">LF Per-Class</p></div>
   </div>
-  <div class="right">
-    <p class="label">ROOT CAUSE ANALYSIS</p>
-    <div class="reason"><p><b>1. Limited compute:</b> Apple MPS, not GPU cluster. Batch size=8 was necessary.</p></div>
-    <div class="reason"><p><b>2. pos_weight overcompensation:</b> Max weight 50x pushed model toward rare classes, hurting precision.</p></div>
-    <div class="reason"><p><b>3. Only 5 epochs:</b> Best at epoch 4 but F1 still climbing. Needed more training time.</p></div>
-    <div class="reason"><p><b>4. Summarization loss:</b> 33% of docs lost information through LED compression.</p></div>
-    <div class="reason"><p><b>5. No hyperparameter tuning:</b> Single configuration run, no grid search.</p></div>
+  <div class="table-row-highlight">
+    <div class="col-metric"><p class="metric">F1 Micro</p></div>
+    <div class="col-val"><p class="val">0.7524</p></div>
+    <div class="col-val"><p class="dim">0.6333</p></div>
+    <div class="col-val"><p class="val">0.7018</p></div>
+    <div class="col-val"><p class="best">0.7735</p></div>
+  </div>
+  <div class="table-row-highlight">
+    <div class="col-metric"><p class="metric">F1 Macro</p></div>
+    <div class="col-val"><p class="val">0.5330</p></div>
+    <div class="col-val"><p class="dim">0.4718</p></div>
+    <div class="col-val"><p class="val">0.5420</p></div>
+    <div class="col-val"><p class="best">0.6000</p></div>
+  </div>
+  <div class="table-row">
+    <div class="col-metric"><p class="metric">Precision</p></div>
+    <div class="col-val"><p class="val">0.6482</p></div>
+    <div class="col-val"><p class="dim">0.4785</p></div>
+    <div class="col-val"><p class="val">0.5853</p></div>
+    <div class="col-val"><p class="val">0.7116</p></div>
+  </div>
+  <div class="table-row">
+    <div class="col-metric"><p class="metric">Recall</p></div>
+    <div class="col-val"><p class="val">0.8966</p></div>
+    <div class="col-val"><p class="dim">0.9363</p></div>
+    <div class="col-val"><p class="val">0.8764</p></div>
+    <div class="col-val"><p class="val">0.8472</p></div>
+  </div>
+  <div class="bottom">
+    <div class="insight">
+      <p class="title">Why LF (0.5) failed, and how Per-Class fixed it</p>
+      <p>At threshold 0.5, the model over-predicted: high recall (0.94) but low precision (0.48) — see table above.</p>
+      <p>Per-class optimization found the best threshold per label on the <b>validation set</b> (range: 0.45-0.90), then applied to <b>test set</b>. Result: precision jumped to 0.71, F1 Micro to 0.77.</p>
+    </div>
+    <div class="delta">
+      <p class="big">+2.1%</p>
+      <p>F1 Micro vs TF-IDF</p>
+      <p class="big" style="margin-top: 6pt;">+6.7%</p>
+      <p>F1 Macro vs TF-IDF</p>
+    </div>
   </div>
 </div>
 </body></html>

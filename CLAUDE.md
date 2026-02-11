@@ -50,31 +50,36 @@ This is a **hiring exercise** for Thomson Reuters Labs. The task is to build an 
 
 ### Baseline Results (TF-IDF + Logistic Regression)
 ```
-F1 Micro:    0.751
-F1 Macro:    0.521
+F1 Micro:    0.752
+F1 Macro:    0.533
 F1 Weighted: 0.798
-
-Feasibility vs human κ (0.63–0.93):
-- Automatable (F1 ≥ 0.63):  14/41 postures
-- High confidence (≥0.93):   1/41 postures
-- Needs review (0.50-0.63):   7/41 postures
+Precision:   0.648
+Recall:      0.897
 ```
 
 **Key finding**: Performance strongly correlates with sample size. Postures with 500+ samples achieve F1 > 0.92.
 
-### Hybrid Model Results (Legal-Longformer)
+### Final Model Comparison (from `03_evaluation.ipynb`)
 ```
-F1 Micro:    0.622
-F1 Macro:    0.436
-F1 Weighted: 0.713
-
-Feasibility vs human κ (0.63–0.93):
-- Automatable (F1 ≥ 0.63):   8/41 postures
-- High confidence (≥0.93):    1/41 postures
-- Needs review (0.50-0.63):   7/41 postures
+Metric          TF-IDF       LF (0.5)     LF (0.6)     LF Per-Class
+F1 Micro        0.7524       0.6333       0.7018       0.7735
+F1 Macro        0.5330       0.4718       0.5420       0.6000
+Precision       0.6482       0.4785       0.5853       0.7116
+Recall          0.8966       0.9363       0.8764       0.8472
 ```
 
-**Key finding**: The transformer underperformed the baseline. Root causes: limited compute (Apple MPS, not GPU cluster), pos_weight overcompensated for rare classes, only 5 epochs of fine-tuning, and summarization information loss for 33% of documents. Characterizing this honestly is as valuable as reporting success.
+**Best model**: Legal-Longformer with per-class threshold optimization
+- **+2.1% F1 Micro** and **+6.7% F1 Macro** over TF-IDF baseline
+- Per-class threshold range: 0.45–0.90, mean: 0.72
+- Key insight: Default 0.5 threshold caused massive over-prediction (high recall, low precision). Per-class thresholds corrected this by finding the optimal cutoff per label on validation data.
+
+### Threshold Optimization Impact
+At default threshold (0.5), the transformer **underperformed** the baseline due to:
+1. Over-prediction: recall 0.94 but precision only 0.48 (model predicted too many labels)
+2. Limited compute: Apple MPS, batch_size=8, only 5 epochs
+3. Summarization loss: 33% of docs lost information through LED compression
+
+Per-class threshold optimization resolved the over-prediction issue, raising precision from 0.48→0.71 while keeping recall at 0.85. This turned a "failed" model into the **best performer**.
 
 ---
 
@@ -269,29 +274,34 @@ Download from the challenge link and place in `data/` folder.
 
 ## Immediate TODO
 
-1. ✅ **Run notebook**: Execute `02_modeling.ipynb` cells 1-18 (baseline)
-2. ✅ **Run notebook**: Execute cells 19-33 (Legal-Longformer training + evaluation)
+1. ✅ **Run notebook**: Execute `02_modeling.ipynb` (baseline + transformer training)
+2. ✅ **Run notebook**: Execute `03_evaluation.ipynb` (checkpoint evaluation + threshold optimization)
 3. ✅ **Update CLAUDE.md**: Fill in actual results from notebook runs
-4. ⏳ **Write Question 3** response (next steps / production planning)
-5. ⏳ **Create interview presentation** (PPT deck)
+4. ✅ **Create interview presentation** (PPT deck with speaker notes)
+5. ⏳ **Write Question 3** response (next steps / production planning)
 6. ⏳ **Package** for submission (zip without data)
 
-## Results (Notebook Executed)
+## Results (All Notebooks Executed)
 
-### Model Comparison
+**Deliverables**: [01_data_exploration.ipynb](notebooks/01_data_exploration.ipynb), [02_modeling.ipynb](notebooks/02_modeling.ipynb), [03_evaluation.ipynb](notebooks/03_evaluation.ipynb)
+
+### Final Model Comparison (from `03_evaluation.ipynb`)
 ```
-Metric              TF-IDF Baseline    Legal-Longformer    Delta
-F1 Micro            0.751              0.622               -0.129
-F1 Macro            0.521              0.436               -0.085
-F1 Weighted         0.798              0.713               -0.085
-Precision (micro)   0.647              0.471               -0.176
-Recall (micro)      0.895              0.916               +0.021
+Metric          TF-IDF       LF (0.5)     LF (0.6)     LF Per-Class
+F1 Micro        0.7524       0.6333       0.7018       0.7735
+F1 Macro        0.5330       0.4718       0.5420       0.6000
+Precision       0.6482       0.4785       0.5853       0.7116
+Recall          0.8966       0.9363       0.8764       0.8472
 ```
 
-### Baseline Top/Bottom Performers
+**Best model**: Legal-Longformer with per-class threshold optimization
+- **+2.1% F1 Micro** and **+6.7% F1 Macro** over TF-IDF baseline
+- Per-class threshold range: 0.45–0.90, mean: 0.72
+
+### Baseline Top/Bottom Performers (TF-IDF)
 ```
-TOP 3:    Appellate Review (F1=0.940), On Appeal (F1=0.915), Review of Admin Decision (F1=0.908)
-BOTTOM 3: Motion for Permanent Injunction (F1=0.143), Motion to Set Aside (F1=0.179), Motion for Reconsideration (F1=0.195)
+TOP 3:    Appellate Review (F1=0.950), On Appeal (F1=0.927), Review of Admin Decision (F1=0.889)
+BOTTOM 3: Motion to Set Aside (F1=0.192), Motion to Stay (F1=0.211), Motion for Costs (F1=0.216)
 ```
 
 ### Document Length Analysis
@@ -301,25 +311,27 @@ BOTTOM 3: Motion for Permanent Injunction (F1=0.143), Motion to Set Aside (F1=0.
 - 33.1% (5,530 docs) required LED summarization before classification
 - All 5,530 summaries cached to disk for reproducibility
 
-### Automation Feasibility (Best Model = Baseline)
+### Automation Feasibility (TF-IDF Baseline)
 ```
-Fully automatable (F1 >= 0.63):  14/41 postures
-High confidence (F1 >= 0.93):     1/41 postures
-Needs human review:                7/41 postures
-Not feasible:                     20/41 postures
+Automatable (F1 >= 0.63):       13/41 postures
+High confidence (F1 >= 0.93):    1/41 postures
+Needs review (0.50-0.63):       11/41 postures
+Not feasible (F1 < 0.50):       17/41 postures
 
 Recommended tiered deployment:
-  Full Automation:   1 posture  (Appellate Review)
-  Assisted Labeling: 13 postures (model + human review)
-  Human Review:      7 postures  (model suggests, human decides)
-  Human Only:        20 postures (insufficient model confidence)
+  Full Automation:   1 posture  (Appellate Review, F1=0.95)
+  Assisted Labeling: 12 postures (model + human review, F1 0.63-0.93)
+  Human Review:      11 postures (model suggests, human decides)
+  Human Only:        17 postures (insufficient model confidence)
 
-Expected efficiency gain: ~34% of labeling can be automated or assisted
+~92% of labeling volume (by sample count) covered by automatable + review tiers.
+LF Per-Class thresholds improve further (+2.1% F1 Micro, +6.7% F1 Macro).
 ```
 
-### Why the Transformer Underperformed
-1. **Limited compute**: Apple MPS (not GPU cluster), batch_size=8
-2. **pos_weight overcompensation**: Rare class weighting too aggressive (max=50x)
-3. **Only 5 epochs**: Best epoch was 4, model likely needed more training
-4. **Summarization loss**: 33% of docs lost information through LED compression
-5. **No hyperparameter tuning**: Single configuration run
+### Threshold Optimization Impact
+At default threshold (0.5), the transformer **underperformed** the baseline due to over-prediction (recall 0.94, precision 0.48). Root causes:
+1. **Over-prediction**: Default 0.5 cutoff too low for imbalanced multi-label problem
+2. **Limited compute**: Apple MPS (not GPU cluster), batch_size=8, only 5 epochs
+3. **Summarization loss**: 33% of docs lost information through LED compression
+
+Per-class threshold optimization (0.45–0.90 range, mean 0.72) resolved the over-prediction issue, raising precision from 0.48→0.71 while keeping recall at 0.85. This turned a "failed" model into the **best performer**.
