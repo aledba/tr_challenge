@@ -37,7 +37,7 @@ p.label { color: #94A3B8; font-size: 9pt; margin: 0 0 6pt 0; text-transform: upp
   <p class="label">MODEL COMPARISON (TEST SET)</p>
   <div class="table-header">
     <div class="col-metric"><p>Metric</p></div>
-    <div class="col-val"><p>TF-IDF</p></div>
+    <div class="col-val"><p>TF-IDF (0.5)</p></div>
     <div class="col-val"><p>LF (0.5)</p></div>
     <div class="col-val"><p>LF (0.6)</p></div>
     <div class="col-val"><p class="best">LF Per-Class</p></div>
@@ -73,8 +73,9 @@ p.label { color: #94A3B8; font-size: 9pt; margin: 0 0 6pt 0; text-transform: upp
   <div class="bottom">
     <div class="insight">
       <p class="title">Why LF (0.5) failed, and how Per-Class fixed it</p>
-      <p>At threshold 0.5, the model over-predicted: high recall (0.94) but low precision (0.48) — see table above.</p>
-      <p>Per-class optimization found the best threshold per label on the <b>validation set</b> (range: 0.45-0.90), then applied to <b>test set</b>. Result: precision jumped to 0.71, F1 Micro to 0.77.</p>
+      <p>At threshold 0.5, the model over-predicted: high recall (0.94) but low precision (0.48).</p>
+      <p>Per-class optimization found the best threshold per label on <b>validation set</b> (range: 0.45-0.90, mean: 0.72), applied to <b>test set</b>.</p>
+      <p style="color: #EAB308; font-size: 8.5pt; margin-top: 3pt;"><b>Caveat:</b> TF-IDF uses default 0.5 threshold — not apples-to-apples. TF-IDF with per-class thresholds would likely narrow the gap.</p>
     </div>
     <div class="delta">
       <p class="big">+2.1%</p>

@@ -1159,7 +1159,7 @@ class HybridLegalClassifier:
         """
         analysis = self.analyze_lengths(texts)
         processed = []
-        
+            
         long_indices = analysis[analysis['exceeds_limit']]['doc_idx'].tolist()
         
         # Summarize long documents with batching for efficiency

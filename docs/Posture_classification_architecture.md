@@ -29,9 +29,20 @@ This document describes the software architecture of the **Procedural Posture Cl
 
 ---
 
-## 2. Domain Model
+## 2. Data Schema (Original Source)
 
-The input data consists of legal judicial opinions with nested text and multi-label posture annotations.
+The challenge data (`TRDataChallenge2023.txt`) is a JSON Lines file where each line is a document with exactly **three fields**. The nesting below is **native to the source data** — we did not create or modify it.
+
+```json
+{
+  "documentId": "string",
+  "postures":   ["On Appeal", "Motion to Dismiss", ...],
+  "sections":   [
+    { "headtext": "I. Background", "paragraphs": ["Plaintiff Dw...", ...] },
+    { "headtext": "",              "paragraphs": ["The court finds...", ...] }
+  ]
+}
+```
 
 ```mermaid
 classDiagram
@@ -42,6 +53,7 @@ classDiagram
     }
 
     class Section {
+        +str headtext
         +List~Paragraph~ paragraphs
     }
 
@@ -49,16 +61,38 @@ classDiagram
         +str text
     }
 
+    Document *-- "1..*" Section : contains
+    Section *-- "1..*" Paragraph : contains
+
+    note for Document "18,000 documents\n49.8% multi-label\navg 1.54 labels/doc"
+    note for Section "Pre-segmented by\nThomson Reuters"
+```
+
+Our code reads this structure as-is via `DataLoader` and flattens it to full-text via `TextExtractor.extract_all()` for modeling.
+
+---
+
+## 2b. Conceptual Analysis (Not Code — Our Domain Understanding)
+
+The diagrams below represent our **analytical findings**, not implemented Python classes. They document how we reasoned about the label space to inform modeling decisions. See [legal_posture_ontology.md](legal_posture_ontology.md) for full details.
+
+### Label Filtering (Our Modeling Decision)
+
+The original 224 posture labels were filtered to 41 viable labels (min 50 samples each). This is implemented in `DataPreparer.prepare(min_label_count=50)`, but the label categories below are conceptual only.
+
+```mermaid
+classDiagram
     class PostureLabel {
-        <<enumeration>>
+        <<conceptual>>
         On Appeal
         Appellate Review
         Motion to Dismiss
-        ...41 viable labels
+        ...224 unique in data
+        ...41 after filtering
     }
 
     class PostureDimension {
-        <<enumeration>>
+        <<conceptual>>
         Stage
         MotionType
         CaseCharacteristic
@@ -66,38 +100,41 @@ classDiagram
         Proceeding
     }
 
-    Document *-- "1..*" Section : contains
-    Section *-- "1..*" Paragraph : contains
-    Document --> "1..*" PostureLabel : annotated with
     PostureLabel --> PostureDimension : belongs to
 
-    note for Document "18,000 documents\n49.8% multi-label\navg 1.54 labels/doc"
     note for PostureLabel "224 unique → filtered to 41\n(min 50 samples each)"
+    note for PostureDimension "Reverse-engineered from\nco-occurrence patterns\nand legal semantics"
 ```
 
-### 2.1 Posture Label Relationships
+### Label Taxonomy Relationships
+
+These categories group posture labels by semantic role. The IS-A and DEPENDS-ON relationships were discovered through co-occurrence analysis and affect how we interpret model errors (confusing related postures is less severe).
 
 ```mermaid
 classDiagram
     class Stage {
+        <<conceptual>>
         On Appeal
         Appellate Review
         Review of Admin Decision
     }
 
     class MotionType {
+        <<conceptual>>
         Motion to Dismiss
         Motion for Summary Judgment
         Motion for Attorney Fees
     }
 
     class SpecificMotion {
+        <<conceptual>>
         MTD for Lack of SMJ
         MTD for Lack of Personal J.
         MTD for Lack of Standing
     }
 
     class Proceeding {
+        <<conceptual>>
         Family Law
         Criminal
         Bankruptcy
@@ -139,6 +176,13 @@ flowchart TB
     style DA_mod fill:#2E5090,color:#fff
 ```
 
+| Class | Responsibility |
+|-------|---------------|
+| **DataLoader** | Loads JSON Lines into a lazily-cached DataFrame; single entry point for all data access |
+| **DatasetAnalyzer** | Computes dataset-wide statistics (posture counts, word lengths, paragraph counts) via column auto-detection |
+| **DatasetStatistics** | Immutable dataclass holding computed statistics; provides formatted `summary()` output |
+| **PostureTaxonomy** | Classifies posture labels into frequency tiers (common / moderate / rare) for modeling decisions |
+
 ### 3.2 Baseline Training Module
 
 ```mermaid
@@ -157,6 +201,13 @@ flowchart TB
 
     style MT_mod fill:#457B9D,color:#fff
 ```
+
+| Class | Responsibility |
+|-------|---------------|
+| **TextExtractor** | Static utility that flattens nested `sections[].paragraphs[]` into a single text string per document |
+| **DataPreparer** | Orchestrates the full data pipeline: text extraction, label binarization, TF-IDF vectorization, train/test split |
+| **PreparedData** | Immutable dataclass holding the split/vectorized data ready for training |
+| **BaselineTrainer** | Trains a TF-IDF + Logistic Regression multi-label classifier (OneVsRest wrapper) |
 
 ### 3.3 Transformer Training Module
 
@@ -195,6 +246,22 @@ flowchart TB
     style BT_mod fill:#E85D04,color:#fff
 ```
 
+| Class | Responsibility |
+|-------|---------------|
+| **DeviceManager** | Auto-detects best available hardware (CUDA > MPS > CPU) |
+| **TrainingConfig** | Dataclass holding all hyperparameters (LR, batch size, epochs, warmup, etc.) |
+| **TrainingHistory** | Records per-epoch metrics (loss, F1) and persists to JSON |
+| **SummaryCache** | Disk-based cache for expensive LED summaries; avoids re-summarizing across runs |
+| **LegalSummarizer** | Wraps Legal-LED (16K context) to condense long documents before classification |
+| **LegalTextDataset** | PyTorch Dataset adapter: tokenizes text and pairs with binary label vectors |
+| **LongDocumentStrategy** | Abstract base (Strategy pattern) for handling documents exceeding 4,096 tokens |
+| **TruncateStrategy** | Simply truncates text to max token length |
+| **HeadTailStrategy** | Keeps first N + last M tokens (preserves intro and conclusion) |
+| **SummarizeStrategy** | Delegates to LegalSummarizer for semantic compression |
+| **BaseTransformerTrainer** | Template Method base: training loop, validation, early stopping, checkpointing |
+| **LegalLongformerTrainer** | Concrete trainer for `lexlms/legal-longformer-base` with global attention on `[CLS]` |
+| **HybridLegalClassifier** | Facade: routes documents to direct classification or summarize-then-classify based on length |
+
 ### 3.4 Evaluation Module
 
 ```mermaid
@@ -213,6 +280,15 @@ flowchart TB
 
     style ME_mod fill:#457B9D,color:#fff
 ```
+
+| Class / Function | Responsibility |
+|-------|---------------|
+| **MultiLabelEvaluator** | Computes multi-label metrics (F1 micro/macro/weighted, precision, recall) and per-class breakdown |
+| **EvaluationResults** | Dataclass holding evaluation output; provides `get_feasibility_analysis()` for automation tiers |
+| **ModelComparison** | Holds multiple model results side-by-side; computes `ensemble_predictions()` (AND strategy) |
+| `compute_threshold_analysis` | Sweeps thresholds per class to find optimal F1 cutoffs on validation data |
+| `save / load_predictions` | Serializes prediction arrays to `.npz` for reproducibility |
+| `create_classification_report_df` | Converts sklearn classification report to a sortable DataFrame |
 
 ### 3.5 Visualization Module
 
@@ -233,6 +309,15 @@ flowchart TB
 
     style VZ_mod fill:#3D8B6F,color:#fff
 ```
+
+| Function | Responsibility |
+|-------|---------------|
+| `COLORS` | Shared color palette (dict) for consistent chart styling |
+| `setup_style` | Configures matplotlib/seaborn defaults (font, grid, figure size) |
+| `_add_chart_branding` | Adds subtitle/watermark to all figures (private helper) |
+| `plot_posture_distribution` | Bar chart of posture label frequencies |
+| `plot_text_length_distribution` | Histogram of document lengths (words/tokens) |
+| `plot_class_imbalance` | Visualizes class imbalance ratio across labels |
 
 ### 3.6 Module Dependency Overview
 

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html><head><style>
+html { background: #0E1A2B; }
+body { width: 720pt; height: 405pt; margin: 0; padding: 0; font-family: Arial, sans-serif; display: flex; flex-direction: column; background-image: url('bg_content.png'); background-size: cover; }
+.topbar { width: 100%; height: 4pt; min-height: 4pt; }
+.topbar img { width: 720pt; height: 4pt; display: block; }
+.header { margin: 16pt 36pt 0 36pt; }
+h1 { color: #00B4D8; font-size: 20pt; margin: 0; }
+.content { display: flex; flex-direction: row; margin: 8pt 36pt 0 36pt; flex: 1; gap: 16pt; }
+.left { flex: 1.2; display: flex; flex-direction: column; }
+.right { flex: 1; display: flex; flex-direction: column; gap: 6pt; }
+p.label { color: #94A3B8; font-size: 8.5pt; margin: 0 0 5pt 0; text-transform: uppercase; letter-spacing: 1pt; }
+p { color: #CBD5E1; font-size: 9pt; margin: 0; line-height: 1.3; }
+
+/* Taxonomy tree */
+.tree { display: flex; flex-direction: column; gap: 5pt; flex: 1; }
+.category { border-radius: 6pt; padding: 6pt 10pt; }
+.cat-stage { background: rgba(0, 180, 216, 0.10); border: 1.5pt solid rgba(0, 180, 216, 0.35); }
+.cat-motion { background: rgba(234, 179, 8, 0.10); border: 1.5pt solid rgba(234, 179, 8, 0.35); }
+.cat-specific { background: rgba(231, 111, 81, 0.10); border: 1.5pt solid rgba(231, 111, 81, 0.35); margin-left: 24pt; }
+.cat-proceed { background: rgba(139, 92, 246, 0.10); border: 1.5pt solid rgba(139, 92, 246, 0.35); }
+.category p.name { font-size: 10pt; font-weight: bold; margin: 0 0 2pt 0; }
+.cat-stage p.name { color: #00B4D8; }
+.cat-motion p.name { color: #EAB308; }
+.cat-specific p.name { color: #E76F51; }
+.cat-proceed p.name { color: #8B5CF6; }
+.category p.examples { color: #94A3B8; font-size: 8pt; margin: 0; }
+
+/* Relationship arrows */
+.rel { display: flex; align-items: center; gap: 5pt; margin: 1pt 0 1pt 10pt; }
+.rel-line { width: 20pt; height: 0; border-top: 1.5pt dashed; }
+.rel-line.isa { border-color: #E76F51; }
+.rel-line.dep { border-color: #8B5CF6; }
+.rel-line.co { border-color: #94A3B8; }
+.rel p { font-size: 7.5pt; font-weight: bold; margin: 0; }
+.rel p.isa { color: #E76F51; }
+.rel p.dep { color: #8B5CF6; }
+.rel p.co { color: #94A3B8; }
+
+/* Insight boxes */
+.insight { border-radius: 6pt; padding: 7pt 10pt; }
+.insight-sparse { background: rgba(231, 111, 81, 0.08); border: 1pt solid rgba(231, 111, 81, 0.25); }
+.insight-dense { background: rgba(0, 180, 216, 0.08); border: 1pt solid rgba(0, 180, 216, 0.25); }
+.insight p.title { font-size: 9.5pt; font-weight: bold; margin: 0 0 3pt 0; }
+.insight-sparse p.title { color: #E76F51; }
+.insight-dense p.title { color: #00B4D8; }
+.insight p { color: #94A3B8; font-size: 8.5pt; margin: 0 0 2pt 0; }
+.insight p b { color: #E2E8F0; }
+
+/* Implication box */
+.implication { background: rgba(34, 197, 94, 0.08); border: 1pt solid rgba(34, 197, 94, 0.25); border-radius: 6pt; padding: 7pt 10pt; margin-top: auto; }
+.implication p.title { color: #22C55E; font-size: 9.5pt; font-weight: bold; margin: 0 0 3pt 0; }
+.implication p { color: #94A3B8; font-size: 8.5pt; margin: 0 0 2pt 0; }
+</style></head>
+<body>
+<div class="topbar"><img src="accent_teal.png"></div>
+<div class="header"><h1>Label Taxonomy: Relationships Between Postures</h1></div>
+<div class="content">
+  <div class="left">
+    <p class="label">HIERARCHICAL STRUCTURE</p>
+    <div class="tree">
+      <div class="category cat-stage">
+        <p class="name">Stage (where in process)</p>
+        <p class="examples">On Appeal, Appellate Review, Review of Admin Decision</p>
+      </div>
+      <div class="category cat-motion">
+        <p class="name">Motion Type (what action)</p>
+        <p class="examples">Motion to Dismiss, Motion for Summary Judgment, Motion for Attorney's Fees</p>
+      </div>
+      <div class="rel">
+        <div class="rel-line isa"></div>
+        <p class="isa">IS-A</p>
+      </div>
+      <div class="category cat-specific">
+        <p class="name">Specific Motion (narrower)</p>
+        <p class="examples">MTD for Lack of SMJ, MTD for Lack of Personal Jurisdiction, MTD for Lack of Standing</p>
+      </div>
+      <div class="rel">
+        <div class="rel-line dep"></div>
+        <p class="dep">DEPENDS-ON</p>
+        <p class="co" style="font-size: 7pt;">  (e.g., Appellate Review (Criminal) requires On Appeal)</p>
+      </div>
+      <div class="category cat-proceed">
+        <p class="name">Proceeding Type (domain)</p>
+        <p class="examples">Family Law, Criminal, Bankruptcy, Workers' Compensation</p>
+      </div>
+    </div>
+  </div>
+  <div class="right">
+    <p class="label">KEY FINDINGS FROM CO-OCCURRENCE ANALYSIS</p>
+    <div class="insight insight-sparse">
+      <p class="title">Sparse Labeling (Specific Motions)</p>
+      <p>IS-A children co-occur with parent only <b>3-13%</b> of the time</p>
+      <p>Labelers use the <b>most-specific label only</b>, not both parent and child</p>
+      <p>e.g., "MTD for Lack of SMJ" appears <b>without</b> "Motion to Dismiss"</p>
+    </div>
+    <div class="insight insight-dense">
+      <p class="title">Dense Labeling (Stages)</p>
+      <p>Stage labels co-occur at <b>89-100%</b> rate</p>
+      <p>"Appellate Review (Criminal)" nearly always has "On Appeal"</p>
+      <p>Stage is almost <b>always co-labeled</b></p>
+    </div>
+    <div class="implication">
+      <p class="title">Why This Matters for Modeling</p>
+      <p>Confusing IS-A relatives (e.g., predicting "MTD" instead of "MTD for Lack of SMJ") is a <b>less severe error</b> than confusing unrelated postures</p>
+      <p>Hierarchical loss functions could leverage this structure</p>
+    </div>
+  </div>
+</div>
+</body></html>

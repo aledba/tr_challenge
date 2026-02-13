@@ -21,6 +21,14 @@ KEY CONCEPT — Multi-label Classification: Unlike multi-class classification wh
 
 The mean document length of nearly 3,000 words is a significant engineering challenge, as we'll see later.`,
 
+  'slide03b_data_schema.html': `Each document in the dataset is a JSON Lines record with exactly three fields: a document ID, a list of posture labels, and nested sections containing paragraphs.
+
+This nesting is native to the source data — Thomson Reuters pre-segmented the judicial opinions into sections with headings and paragraphs. The average document has about 30 sections, and across all 18,000 documents there are over half a million paragraphs.
+
+For modeling, we flatten this nested structure into a single text string per document using our TextExtractor utility. This is a deliberate simplification — future work could leverage section boundaries as structural features, since different sections (e.g., "Background" vs "Analysis") may carry different signals for posture classification.
+
+The JSON example on the right shows a typical record: a document with two posture labels and multiple sections, each with a heading and paragraph text.`,
+
   'slide04_label_dist.html': `This slide shows the extreme class imbalance we're dealing with. The 27 most common labels cover 91.5% of all label occurrences, while 140 rare labels have fewer than 10 samples each — including 44 labels that appear only once in the entire dataset.
 
 The class imbalance ratio of 9,197x means the most frequent label is over nine thousand times more common than the rarest. For modeling, we filtered to 41 labels with at least 50 samples, which still covers 94.8% of all label occurrences. This is a pragmatic decision — you can't build a reliable classifier on 5 training examples.
@@ -32,6 +40,16 @@ KEY CONCEPT — Class Imbalance: When some classes have many more samples than o
 There are also hierarchical relationships. For example, "Motion to Dismiss for Lack of Subject Matter Jurisdiction" IS-A specific type of "Motion to Dismiss." This means some label confusions are less severe than others.
 
 KEY CONCEPT — Cohen's Kappa: An inter-annotator agreement metric that corrects for chance agreement. Kappa = 0 means agreement is no better than random; kappa = 1 means perfect agreement. Our human benchmark range of 0.63–0.93 tells us that some postures are inherently harder to classify, even for trained legal professionals. This range defines our target — a model performing at kappa-equivalent levels could be trusted for automation.`,
+
+  'slide05b_taxonomy.html': `This slide digs deeper into the relationships between posture labels. Through co-occurrence analysis in the data, we identified a hierarchical taxonomy.
+
+The key finding is that labeling practice differs by category. For Stage labels like "On Appeal" and "Appellate Review," annotators almost always co-label — 89 to 100% co-occurrence. But for specific motions like "MTD for Lack of Subject Matter Jurisdiction," annotators use only the most specific label — they co-occur with the parent "Motion to Dismiss" only 3 to 13% of the time.
+
+This sparse labeling pattern is not an error in the data — it reflects how the annotation guidelines work. But it has modeling implications: the model might predict "Motion to Dismiss" when the correct label is the more specific variant, or vice versa. These IS-A confusions should be penalized less than confusing completely unrelated postures.
+
+This suggests a future direction: hierarchical classification with a loss function that accounts for label relationships. A mistake within a family (predicting parent instead of child) is less severe than a mistake across families (predicting a motion when it's actually an appeal).
+
+Source: co-occurrence analysis documented in our legal posture ontology analysis.`,
 
   'slide06_section_solution.html': `Now let's look at how I approached the modeling. I designed a two-model strategy to understand the problem from different angles.`,
 
@@ -91,7 +109,13 @@ The problem was over-prediction: at threshold 0.5, the model predicted too many 
 
 KEY CONCEPT — Threshold Optimization: In multi-label classification, the model outputs a probability for each label. The default is to predict "positive" if probability > 0.5. But for imbalanced problems, 0.5 is rarely optimal. Per-class threshold optimization finds the cutoff per class that maximizes F1 on validation data, then applies those thresholds to test data. Our optimal thresholds ranged from 0.45 to 0.90 with a mean of 0.72 — much higher than the naive 0.5.
 
-The result: LF Per-Class achieves F1 Micro 0.7735 (+2.1% over baseline) and F1 Macro 0.6000 (+6.7% over baseline). The transformer beats the baseline on both metrics, especially on rare classes where the macro improvement is most pronounced.`,
+The result: LF Per-Class achieves F1 Micro 0.7735 (+2.1% over baseline) and F1 Macro 0.6000 (+6.7% over baseline). The transformer beats the baseline on both metrics, especially on rare classes where the macro improvement is most pronounced.
+
+Important caveat: this comparison is not strictly apples-to-apples. The TF-IDF baseline uses sklearn's default fixed 0.5 threshold for all 41 labels, while the transformer gets per-class optimization. The baseline also has predict_proba — we could run the same threshold sweep on it and it would almost certainly improve, especially on precision.
+
+However, it's less unfair than it sounds: the baseline's 0.5 already works reasonably well (precision 0.65, recall 0.90 — slightly over-predicting but not catastrophically), while the transformer at 0.5 was completely broken (precision 0.48, recall 0.94). So the threshold optimization was more of a "fix" for the transformer than a "boost."
+
+For a truly fair comparison, you'd want both models with per-class thresholds — the transformer would likely still win, but the gap might narrow. That's a clear next step.`,
 
   'slide16c_ensemble.html': `This slide shows our best overall result: the ensemble AND strategy that combines TF-IDF and Longformer predictions.
 
@@ -125,7 +149,9 @@ The business recommendation: partial automation is feasible and worth pursuing. 
 
   'slide19_next_steps.html': `If this project continues, there are clear paths for improvement on both the modeling and production sides.
 
-For modeling: the most promising next step is combining the two improvements we already built — running the AND ensemble on top of per-class thresholds. We did each separately but never combined them. Beyond that, a stacking meta-learner could learn optimal combination weights from both models' probability outputs.
+For modeling: the most immediate next step is applying per-class threshold optimization to the TF-IDF baseline too. Currently our comparison is not fully apples-to-apples — the baseline uses a fixed 0.5 threshold while the transformer gets per-class optimization. The baseline also has predict_proba, so we could run the same sweep. This would tell us how much of the transformer's advantage comes from the model itself vs the threshold tuning.
+
+Beyond that, combining the two improvements — running the AND ensemble on top of per-class thresholds for both models — is the logical next experiment.
 
 GPU training with larger batches, more epochs, and proper hyperparameter search would likely improve the transformer significantly — we only ran 5 epochs on Apple MPS. Hierarchical classification using the ontology structure could leverage the IS-A relationships between postures. Data augmentation could boost rare class performance.
 
@@ -171,9 +197,11 @@ async function build() {
     'slide01_title.html',
     'slide02_what_is_posture.html',
     'slide03_dataset.html',
+    'slide03b_data_schema.html',
     'slide04_label_dist.html',
     'slide04b_label_pie.html',
     'slide05_domain.html',
+    'slide05b_taxonomy.html',
     'slide06_section_solution.html',
     'slide07_strategy.html',
     'slide08_baseline.html',

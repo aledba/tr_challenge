@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html><head><style>
+html { background: #0E1A2B; }
+body { width: 720pt; height: 405pt; margin: 0; padding: 0; font-family: Arial, sans-serif; display: flex; flex-direction: column; background-image: url('bg_content.png'); background-size: cover; }
+.topbar { width: 100%; height: 4pt; min-height: 4pt; }
+.topbar img { width: 720pt; height: 4pt; display: block; }
+.header { margin: 18pt 36pt 0 36pt; }
+h1 { color: #00B4D8; font-size: 20pt; margin: 0; }
+.content { display: flex; flex-direction: row; margin: 10pt 36pt 0 36pt; flex: 1; gap: 18pt; }
+.left { flex: 1.15; display: flex; flex-direction: column; gap: 8pt; }
+.right { flex: 1; display: flex; flex-direction: column; gap: 6pt; }
+p.label { color: #94A3B8; font-size: 8.5pt; margin: 0 0 4pt 0; text-transform: uppercase; letter-spacing: 1pt; }
+p { color: #CBD5E1; font-size: 9.5pt; margin: 0; line-height: 1.3; }
+
+/* Entity boxes for the schema diagram */
+.entity { border-radius: 6pt; padding: 8pt 10pt; }
+.entity-doc { background: rgba(0, 180, 216, 0.12); border: 1.5pt solid rgba(0, 180, 216, 0.4); }
+.entity-sec { background: rgba(234, 179, 8, 0.10); border: 1.5pt solid rgba(234, 179, 8, 0.35); margin-left: 20pt; }
+.entity-par { background: rgba(34, 197, 94, 0.10); border: 1.5pt solid rgba(34, 197, 94, 0.35); margin-left: 40pt; }
+.entity p.name { font-size: 11pt; font-weight: bold; margin: 0 0 3pt 0; }
+.entity-doc p.name { color: #00B4D8; }
+.entity-sec p.name { color: #EAB308; }
+.entity-par p.name { color: #22C55E; }
+.entity p.field { color: #94A3B8; font-size: 8.5pt; font-family: 'Courier New', monospace; margin: 0 0 1pt 0; }
+
+/* Connector arrows */
+.connector { margin-left: 8pt; padding: 2pt 0 2pt 14pt; border-left: 2pt solid rgba(255,255,255,0.12); }
+.connector p { color: #94A3B8; font-size: 8pt; font-style: italic; }
+
+/* JSON example */
+.json-box { background: rgba(0,0,0,0.3); border: 1pt solid rgba(255,255,255,0.1); border-radius: 6pt; padding: 8pt 10pt; flex: 1; }
+.json-box p { font-family: 'Courier New', monospace; font-size: 7.5pt; line-height: 1.35; margin: 0 0 0 0; color: #CBD5E1; }
+.json-box p.cmt { color: #64748B; font-style: italic; }
+.k { color: #00B4D8; }
+.s { color: #22C55E; }
+
+/* Stats strip */
+.stats { display: flex; gap: 6pt; }
+.stat { flex: 1; background: rgba(255,255,255,0.04); border: 1pt solid rgba(255,255,255,0.08); border-radius: 5pt; padding: 5pt 7pt; text-align: center; }
+.stat p.num { color: #E2E8F0; font-size: 13pt; font-weight: bold; margin: 0; }
+.stat p.lbl { color: #94A3B8; font-size: 7pt; text-transform: uppercase; margin: 1pt 0 0 0; }
+</style></head>
+<body>
+<div class="topbar"><img src="accent_teal.png"></div>
+<div class="header"><h1>Document Structure</h1></div>
+<div class="content">
+  <div class="left">
+    <p class="label">NESTED HIERARCHY (JSON LINES)</p>
+    <div class="entity entity-doc">
+      <p class="name">Document</p>
+      <p class="field">documentId: string</p>
+      <p class="field">postures: [string, ...]</p>
+      <p class="field">sections: [Section, ...]</p>
+    </div>
+    <div class="connector"><p>contains 1..*</p></div>
+    <div class="entity entity-sec">
+      <p class="name">Section</p>
+      <p class="field">headtext: string</p>
+      <p class="field">paragraphs: [string, ...]</p>
+    </div>
+    <div class="connector" style="margin-left: 28pt;"><p>contains 1..*</p></div>
+    <div class="entity entity-par">
+      <p class="name">Paragraph</p>
+      <p class="field">text: string (raw content)</p>
+    </div>
+    <div class="stats" style="margin-top: 6pt;">
+      <div class="stat"><p class="num">18K</p><p class="lbl">Documents</p></div>
+      <div class="stat"><p class="num">30.1</p><p class="lbl">Avg Sections/Doc</p></div>
+      <div class="stat"><p class="num">542K</p><p class="lbl">Paragraphs</p></div>
+    </div>
+  </div>
+  <div class="right">
+    <p class="label">EXAMPLE RECORD</p>
+    <div class="json-box">
+      <p class="cmt">// One line in TRDataChallenge2023.txt</p>
+      <p>{</p>
+      <p>&nbsp;&nbsp;<span class="k">"documentId"</span>: <span class="s">"I4b8..."</span>,</p>
+      <p>&nbsp;&nbsp;<span class="k">"postures"</span>: [</p>
+      <p>&nbsp;&nbsp;&nbsp;&nbsp;<span class="s">"On Appeal"</span>,</p>
+      <p>&nbsp;&nbsp;&nbsp;&nbsp;<span class="s">"Appellate Review"</span></p>
+      <p>&nbsp;&nbsp;],</p>
+      <p>&nbsp;&nbsp;<span class="k">"sections"</span>: [</p>
+      <p>&nbsp;&nbsp;&nbsp;&nbsp;{</p>
+      <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">"headtext"</span>: <span class="s">"I. Background"</span>,</p>
+      <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">"paragraphs"</span>: [</p>
+      <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="s">"Plaintiff filed..."</span>,</p>
+      <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="s">"The court finds..."</span></p>
+      <p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;]</p>
+      <p>&nbsp;&nbsp;&nbsp;&nbsp;},</p>
+      <p>&nbsp;&nbsp;&nbsp;&nbsp;{ <span class="k">"headtext"</span>: <span class="s">"II. Analysis"</span>, ... }</p>
+      <p>&nbsp;&nbsp;]</p>
+      <p>}</p>
+    </div>
+    <p style="color: #94A3B8; font-size: 8pt; margin-top: 4pt;">For modeling: sections and paragraphs are flattened into a single text string per document via <b style="color:#E2E8F0;">TextExtractor</b>.</p>
+  </div>
+</div>
+</body></html>
